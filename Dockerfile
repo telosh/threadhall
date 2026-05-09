@@ -12,7 +12,8 @@
 
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    DEBIAN_FRONTEND=noninteractive
 
 FROM base AS deps
 RUN apt-get update \
@@ -24,7 +25,12 @@ RUN npm ci
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# ビルド時に必須になる環境変数があれば --build-arg で渡す（NEXT_PUBLIC_* 等）
+# Next ビルドで @/lib/auth が読み込まれると Better Auth が libSQL を初期化する。
+# CI（.github/workflows/ci.yml）と同様、イメージビルド時だけファイル URL とダミーシークレットを使う。
+# 実行時は Cloud Run の環境変数・Secret が上書きする。
+ENV TURSO_DATABASE_URL=file:/tmp/threadhall-docker-build.db
+ENV BETTER_AUTH_SECRET=01234567890123456789012345678901
+ENV BETTER_AUTH_URL=http://localhost:3000
 RUN npm run build
 
 FROM base AS runner
