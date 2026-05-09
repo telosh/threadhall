@@ -1,5 +1,5 @@
 # Cloud Build → Artifact Registry → Cloud Run（本番イメージのみ）
-# 使用 Dockerfile: リポジトリルートの `Dockerfile`（standalone / prod）。
+# 使用 Dockerfile: リポジトリルートの `Dockerfile`（`next build` + `npm run start`）。
 # threadhall-dev 向けは cloudbuild.dev.yaml（同一 Dockerfile、`cloud-run-source-deploy` と `threadhall-dev` サービス向け）。
 #
 # 使い方の例（prod プロジェクト）:
@@ -19,8 +19,8 @@
 #       環境変数・Secret は初回にコンソールで設定し、デプロイで消さないようフラグに注意
 #       （デフォルトの deploy は既存設定とマージされることが多いが、運用で flags を足す場合は要確認）。
 #
-# deploy の --command / --args: イメージの CMD だけに依存せず standalone を強制する。
-# （コンソールや古いリビジョンで npm run dev / Dockerfile.dev が残っていても上書きする）
+# deploy の --command / --args: イメージの CMD だけに依存せず `npm run start` を強制する。
+# （コンソールで next dev 等に上書きされたリビジョンを正す）
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -69,8 +69,9 @@ steps:
       - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
       - "--region=$_REGION"
       - "--platform=managed"
-      - "--command=node"
-      - "--args=server.js"
+      - "--command=npm"
+      - "--args=run"
+      - "--args=start"
       - "--quiet"
 
 images:
