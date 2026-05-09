@@ -1,0 +1,96 @@
+# Google Cloud Run への CI/CD（本番イメージのみ）。
+# 使用する Docker ファイル: リポジトリルートの `Dockerfile`（standalone / prod）。
+# threadhall-dev や next dev イメージは Dockerfile.dev + cloudbuild.dev.yaml（GCP 側トリガー等）を使う。
+#
+# 初回セットアップ: docs/deploy/cloud-run.md
+#
+# 有効化までリポジトリ変数:
+#   GCP_PROJECT_ID        … GCP プロジェクト ID
+#   GCP_REGION            … 例: asia-northeast1（省略時は workflow 内デフォルト）
+#   GAR_REPOSITORY        … Artifact Registry の Docker リポジトリ名（例: threadhall）
+#   CLOUD_RUN_SERVICE     … Cloud Run サービス名
+#   CLOUD_RUN_DEPLOY_ENABLED … "true" のとき main への push で自動デプロイ（手動だけなら未設定のまま）
+#
+# Secrets（Workload Identity Federation 推奨）:
+#   GCP_WORKLOAD_IDENTITY_PROVIDER … projects/.../locations/global/workloadIdentityPools/.../providers/...
+#   GCP_SERVICE_ACCOUNT              … xxx@xxx.iam.gserviceaccount.com
+#
+# Cloud Run 上のランタイム環境変数・Secret Manager はコンソールまたは本 workflow の env_vars / secrets を拡張して管理。
+
+name: Deploy Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.ts"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "tsconfig.json"
+      - "cloudbuild.yaml"
+      - "cloudbuild.dev.yaml"
+      - ".github/workflows/deploy-cloud-run.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY || 'threadhall' }}
+  SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'threadhall' }}
+
+jobs:
+  deploy:
+    name: Build, push, deploy
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (vars.CLOUD_RUN_DEPLOY_ENABLED == 'true' && vars.GCP_PROJECT_ID != '')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configure Artifact Registry Docker auth
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        env:
+          IMAGE: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
+        run: |
+          set -eux
+          docker build -f Dockerfile -t "${IMAGE}" .
+          docker push "${IMAGE}"
+          echo "IMAGE=${IMAGE}" >> "${GITHUB_ENV}"
+
+      - id: deploy
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          region: ${{ env.REGION }}
+          service: ${{ env.SERVICE }}
+          image: ${{ env.IMAGE }}
+          env_vars: |
+            NODE_ENV=production
+          # 機微情報は Secret Manager + secrets ブロックを推奨。例:
+          # secrets: |
+          #   BETTER_AUTH_SECRET=threadhall-better-auth-secret:latest
+          # 平文でよい URL 類は env_vars に追記するか、GitHub Environment の Variables で持つ。
+
+      - name: Show service URL
+        run: |
+          echo "Deployed: ${{ steps.deploy.outputs.url }}"
