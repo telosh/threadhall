@@ -2,6 +2,8 @@
 
 コミュニティの**長命スレッド**と、**会場・締切で閉じるイベントログ**を想定した Next.js スキャフォールド。データ層は **Turso / libSQL**、ローカルは **Docker の libsql-server（sqld）** のみで開発できます。
 
+設計上の整理（ドメイン・フォルダ責務・`src/proxy.ts` など）は [`docs/DESIGN.md`](docs/DESIGN.md) を参照。**製品確定事項・権限・画面・GCP/Turso** は [`docs/system/README.md`](docs/system/README.md) を参照。
+
 ## 必要環境
 
 - Node.js **22+**（`.nvmrc`）
