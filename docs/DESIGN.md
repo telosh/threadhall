@@ -160,12 +160,121 @@ threadhall/
 
 - **現状**: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`
 - **後続で足しうるもの**（名前は実装時に確定）: 外部認証、解析、Rate limit、プレビュー用フラグ
+- **UI 参照のみ（任意）**: Google Stitch の MCP をローカルから叩く用途で API キーを保持する場合、**リポジトリ・Issue・PR 本文にキーを書かない**。Cursor の MCP 設定や Secret 管理に限定する。
 
 ## 13. オープンな設計判断（実装前に決めたい）
 
 1. 投稿を **単一 `posts` + discriminator** にするか、**テーブル分割**にするか。
 2. スレッドとイベントの **URL とコミュニティ（ワークスペース）** の有無。
 3. **リアルタイム**（Presence・通知）を Phase いつで入れるか（libSQL 単体のままか、別チャネルか）。
+
+## 14. UI 参照ソース（Google Stitch）と実装ギャップ
+
+高忠実度の見た目・コンポーネント分割の参照は **Google Stitch 上のプロジェクト** と一致させる。ここでは **MCP から再取得可能な事実**、**カラー定義の SSOT**、**現コードとの差** を Issue / 実装の共通言語として固定する。
+
+### 14.1 Stitch プロジェクト（再現用メタ）
+
+| 項目 | 値 |
+|------|-----|
+| 表示名 | Threadhall Geo-Temporal Threads |
+| リソース名（MCP の `name`） | `projects/10966941952817124867` |
+| 種別 | `TEXT_TO_UI_PRO` |
+| 端末初期値 | `DESKTOP`（同一プロジェクト内にモバイル幅フレームあり） |
+| テーマ | `LIGHT`、フォントは headline Geist / body Inter / label JetBrains Mono 系 |
+
+用語対応（Stitch 画面文言 ↔ 本リポジトリのドメイン）:
+
+- Stitch の「コミュニティ」≒ 実装・ドキュメント上の **組織（organization）**。
+- 「長命スレッド」「イベントログ」は本書 §1・§4 の区分と対応させる。
+
+### 14.2 GitHub Issue で活かす MCP 情報（秘密は載せない）
+
+Stitch は **HTTP MCP**（`POST https://stitch.googleapis.com/mcp`）で JSON-RPC 風の呼び出しが可能。**API キーは Issue・PR・ログに貼らない**（再発行が必要になる）。
+
+Issue に載せるとレビュー・実装が早い情報（MCP から取得可能）:
+
+| 取得方法（概念） | Issue に貼る中身の例 |
+|------------------|----------------------|
+| `tools/call` → `get_project`（`name`: 14.1 のリソース名） | プロジェクト更新日時、`designTheme` の要約、サムネ `thumbnailScreenshot.downloadUrl` |
+| 同上の JSON 内 `screenInstances[]` | 各画面の `sourceScreen`、`width` × `height`（キャンバス上のフレームサイズ） |
+| `tools/call` → `get_screen`（`name`: `projects/.../screens/{screenId}`） | **画面タイトル**、`screenshot.downloadUrl`（スクリーンショット）、`htmlCode.downloadUrl`（HTML エクスポート）、`deviceType` |
+| `designTheme` / `designMd` に含まれる YAML | 下表の **カラー・タイポ・spacing**（下記 14.4） |
+
+ツール名の一覧（クライアント実装・スクリプト用）: `create_project`, `get_project`, `list_projects`, `list_screens`, `get_screen`, `generate_screen_from_text`, `edit_screens`, `generate_variants`, `upload_design_md`, `create_design_system`, `create_design_system_from_design_md`, `update_design_system`, `list_design_systems`, `apply_design_system`。
+
+補足: `list_screens` は引数の組み合わせによってはエラーになることがある。**画面一覧は `get_project` の `screenInstances` + 各 `get_screen` が安定**。
+
+### 14.3 Stitch 画面一覧と想定ルート・現状（2026-05 時点）
+
+Stitch 側の画面タイトルと、本リポジトリで想定するルート案、および **現実装** の対応を並べる。
+
+| Stitch 画面タイトル | 想定ルート（案） | 現状の実装 |
+|----------------------|------------------|------------|
+| ポータル・ダッシュボード | `/` または `/dashboard` | `/` は **開発用スキャフォールド**（DB・認証・組織試用）。Stitch のダッシュボード UI ではない |
+| ポータル・ダッシュボード (Mobile) | 同上（レスポンシブ） | 同上 |
+| コミュニティ/組織ページ | `/orgs/[slug]` など | **専用ページなし**。トップから API リンク・一覧のみ |
+| コミュニティページ (Mobile) | 同上 | 同上 |
+| スレッド詳細（長命スレッド） | `/threads/[threadId]` | **専用ページなし**。`POST /api/threads` と JSON のみ |
+| スレッド詳細 (Mobile) | 同上 | 同上 |
+| イベントログ（期間限定スレッド） | `/events/[eventId]` | **専用ページなし**。`POST /api/events` と JSON のみ |
+| イベントログ (Mobile) | 同上 | 同上 |
+| 共通コンポーネント・パーツ一覧 | （ドキュメント or Story 化） | 未整備 |
+| DESIGN.md（キャンバス） | 本書・`docs/DESIGN.md` | アーキテクチャは本書。Stitch 側は**視覚的な DESIGN キャンバス**として別物 |
+| デザインシステム Instance | トークン SSOT | 下記 14.4 をコードへ未反映 |
+
+### 14.4 カラー・タイポ・スペーシング（Stitch の SSOT）
+
+実装では `globals.css` の `@theme` や Tailwind 拡張へマップする。**値は Stitch の `designMd` / `namedColors` に合わせる**（ここでは主要なもののみ列挙）。
+
+**カラー（意味ラベル → 用途の目安 → 例）**
+
+| トークン名（Stitch） | 用途の目安 | Hex（例） |
+|----------------------|------------|-----------|
+| `surface` | 全体背景 | `#f9f9f9` |
+| `on_surface` | 主テキスト | `#1b1b1b` |
+| `primary` | 主ボタン・強調 | `#000000` |
+| `secondary` / `secondary_container` | リンク・アクセント UI | `#4648d4` / `#6063ee` |
+| `on_secondary` | secondary 上のテキスト | `#ffffff` |
+| `outline` / `outline_variant` | 境界線 | `#7e7576` / `#cfc4c5` |
+| `surface_container*` | 段差のあるパネル | `#eeeeee`〜`#f3f3f3` ほか |
+| `thread-stable` | 長命スレッド系の安定色 | `#0f172a` |
+| `event-active` | イベント進行中の強調 | `#f59e0b` |
+| `text-dim` | 補助テキスト | `#64748b` |
+| `border-low` | 低コントラスト境界 | `#e2e8f0` |
+| `surface-muted` | 控えめ背景 | `#f8fafc` |
+| `error` 系 | エラー | `#ba1a1a` ほか |
+
+**タイポグラフィ（Stitch designMd）**
+
+- `headline-xl`: Geist, 36px, weight 700, line-height 1.2（モバイル用 `headline-xl-mobile`: 28px）
+- `headline-lg` / `headline-md`: Geist, 24px / 18px, weight 600
+- `body-lg` / `body-md`: Inter, 16px / 14px
+- `label-sm`: JetBrains Mono, 12px, weight 500, letter-spacing 0.02em
+
+**スペーシング**
+
+- `container-max`: 1200px、`gutter`: 1.5rem、`margin-page`: 2rem、`stack-sm`〜`stack-lg`: 0.5〜2rem  
+- `rounded`: `sm` 0.125rem 〜 `full` 9999px（Stitch の `ROUND_FOUR` と併記して移行する）
+
+### 14.5「デザイン」と「現機能」の差分（要約）
+
+| 観点 | Stitch（UI） | 現リポジトリ（機能・UI） |
+|------|----------------|---------------------------|
+| カラーモード | **ライト**基調（surface `#f9f9f9`） | トップは **zinc ダーク** + emerald の暫定 UI。Stitch トークン未接続 |
+| フォント | Geist / Inter / JetBrains Mono | `layout` で Geist 想定だが `globals.css` の `body` は Arial 指定が残存しうる |
+| 画面数 | ダッシュボード・組織・スレッド詳細・イベントログ・部品一覧 等 | **ルートは `/` のみ**。スレッド/イベントは **API + トップの mono 一覧** |
+| データ | 見た目のみ | organizations / threads / events は **API と DB 層あり**（[`data/CONTRACTS.md`](data/CONTRACTS.md)）。UI 未接続 |
+| 地理・時期制限 | デザイン上のコンセプト | `src/proxy.ts` はパススルー。**ルール未実装** |
+
+### 14.6 改善候補（指示・Issue 用チェックリスト）
+
+実装・デザインを揃える段階で、優先度はプロダクト指示に従う。
+
+1. **トークン統合**: 14.4 を `globals.css` / Tailwind にマップし、暫定の `zinc`+`emerald` を置き換えるか、意図的に「ダークテーマ別ブランチ」とするかを決める。
+2. **ルートとナビ**: 14.3 の想定ルートに沿って `app/` 配下へページを切る（RSC + `src/server/queries`）。
+3. **用語・IA**: 「コミュニティ」表示を使うか、実装に合わせ「組織」のみにするかを画面単位で固定。
+4. **Issue 添付**: 各 Issue に **Stitch の画面タイトル + `get_screen` の `screenshot.downloadUrl`（または時刻付きで保存した画像）** を貼り、仕様の単一参照にする。
+5. **`list_screens` 不整合時**: `get_project` + `get_screen` にフォールバックする旨をスクリプト・ドキュメントに明記済みとする。
 
 ---
 
