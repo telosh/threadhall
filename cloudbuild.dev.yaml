@@ -1,12 +1,19 @@
-# Cloud Build（threadhall-dev）: ルート Dockerfile → standalone（`npm run build` + `node server.js`）。
-# 「Cloud Run で next dev」を避け、検証環境でも本番相当の起動方式に揃える。
+# Cloud Build（threadhall-dev GCP プロジェクト）: ルート Dockerfile → standalone（`npm run build` + `node server.js`）。
+# Cloud Run が参照する Artifact と一致させるため、既定で次のパスへ push する。
+#   asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/threadhall/threadhall-dev:$TAG
 #
-# compose だけが Dockerfile.dev（`npm run dev`）を利用する。
+# compose だけが Dockerfile.dev（`npm run dev`）。
 #
+# 手動実行例（プロジェクトが threadhall-dev のとき PROJECT_ID と一致する）:
 #   gcloud config set project threadhall-dev
 #   gcloud builds submit --config cloudbuild.dev.yaml \
-#     --substitutions=_REGION=asia-northeast1,_AR_HOSTNAME=asia-northeast1-docker.pkg.dev,_AR_REPO=threadhall,_SERVICE=threadhall-app
+#     --substitutions=SHORT_SHA="$(git rev-parse HEAD)"
 #
+# カスタム（別サービス／別イメージパスへ出したいとき）の例:
+#   --substitutions=_SERVICE=別名,_IMAGE=グループ名/別名
+#
+# 注意: 「ソースから継続的デプロイ」で自動ビルドする場合、この YAML をトリガーの構成ファイルにすると
+#   コンソールの Run と同じレジストリ・サービスへデプロイしやすい。
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -14,8 +21,12 @@ options:
 substitutions:
   _REGION: asia-northeast1
   _AR_HOSTNAME: asia-northeast1-docker.pkg.dev
-  _AR_REPO: threadhall
-  _SERVICE: threadhall-app
+  # Cloud Run が push 済みとして参照している Artifact Registry のリポジトリ名。
+  _AR_REPO: cloud-run-source-deploy
+  # コンテナ画像の名前（サービスYAMLの image の「リポジトリ以降」を REPO で除いた部分）
+  _IMAGE: threadhall/threadhall-dev
+  # Cloud Run のサービス名（gcloud run deploy の第1引数）
+  _SERVICE: threadhall-dev
 
 steps:
   - id: build
@@ -27,22 +38,22 @@ steps:
       - "-f"
       - Dockerfile
       - "-t"
-      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:$SHORT_SHA"
       - "-t"
-      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:latest"
       - .
 
   - id: push-sha
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:$SHORT_SHA"
 
   - id: push-latest
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:latest"
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -51,11 +62,11 @@ steps:
       - run
       - deploy
       - $_SERVICE
-      - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+      - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:$SHORT_SHA"
       - "--region=$_REGION"
       - "--platform=managed"
       - "--quiet"
 
 images:
-  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
-  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:$SHORT_SHA"
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_IMAGE:latest"

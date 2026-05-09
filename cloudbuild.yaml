@@ -1,6 +1,6 @@
 # Cloud Build → Artifact Registry → Cloud Run（本番イメージのみ）
 # 使用 Dockerfile: リポジトリルートの `Dockerfile`（standalone / prod）。
-# threadhall-dev 向けは cloudbuild.dev.yaml（同一 Dockerfile、別タグ `*-dev`）。
+# threadhall-dev 向けは cloudbuild.dev.yaml（同一 Dockerfile、`cloud-run-source-deploy` と `threadhall-dev` サービス向け）。
 #
 # 使い方の例（prod プロジェクト）:
 #   gcloud config set project threadhall-prod
