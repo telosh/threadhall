@@ -143,6 +143,18 @@ gcloud builds submit --config cloudbuild.dev.yaml \
 
 `gcloud run deploy` は **主にイメージの差し替え**。**シークレット・本番 URL** は **Cloud Run UI** で管理すると、意図しない上書きを避けやすい。deploy に `--set-env-vars` を足す場合はチームで方針を決めてから [cloudbuild.yaml](../../cloudbuild.yaml) を編集。
 
+**起動コマンド:** [cloudbuild.yaml](../../cloudbuild.yaml) / [cloudbuild.dev.yaml](../../cloudbuild.dev.yaml) の deploy には **`--command=node` と `--args=server.js`** を付け、コンテナを **standalone の `server.js` 固定**にする（Cloud Run コンソールで過去に `npm run dev` を上書きしたリビジョンを止める用途にもなる）。
+
+### ログに `next dev` が出るとき
+
+**あるべき姿:** Cloud Run（`threadhall-dev` / 本番とも）では **`node server.js` のみ**。`next dev` は **ローカルの [Dockerfile.dev](../../Dockerfile.dev) / compose だけ**。
+
+ログに `next dev --hostname 0.0.0.0` が出る場合の切り分け:
+
+1. **イメージ**がルート [Dockerfile](../../Dockerfile) のビルドか確認する（`Dockerfile.dev` で build したタグを push していないか）。
+2. Cloud Run の **コンテナ** で **コマンド・引数の上書き**が残っていないか。`npm run dev` 等なら削除し、再デプロイ（上記 YAML の `--command` / `--args`）に合わせる。
+3. **ソースからの継続デプロイ**だけを使っている場合は、ビルドが **このリポジトリの Cloud Build 構成**（`cloudbuild.dev.yaml` / `cloudbuild.yaml`）を参照するようトリガーを合わせる。
+
 ---
 
 ## 環境変数一覧（再掲）
