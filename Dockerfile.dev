@@ -1,5 +1,5 @@
 # 開発専用: `docker compose` の web のみ。このファイルでは `npm run dev`（ホットリロード）。
-# Cloud Run・Artifact Registry は cloudbuild.yaml / cloudbuild.dev.yaml のルート Dockerfile（standalone + `node server.js`）。
+# Cloud Run・Artifact Registry ではルート Dockerfile のみを使うこと。このイメージを GCP に push しない。
 #
 # Cloud Run は PORT（例: 8080）を注入する。未設定時は 3000（compose 既定と一致）。
 
