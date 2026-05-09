@@ -26,6 +26,9 @@
 12. [`future-backlog.md`](future-backlog.md) … 将来拡張（参考）
 13. [`glossary.md`](glossary.md) … 用語
 14. [`turso-event-scope.md`](turso-event-scope.md) … イベント×Turso スコープの入り口
+15. [`components.md`](components.md) … UI トークン・コンポーネント設計（実装の正）
+16. [`pages-matrix.md`](pages-matrix.md) … ページ × FR × ロール × データの整合性表
+17. [`../pages/`](../pages/) … 本番ルートごとの仕様（フロントマター付き）
 
 ## 技術スタック（確定方針）
 
