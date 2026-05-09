@@ -177,14 +177,14 @@ export default async function EventDetailPage({ params }: Props) {
                         </p>
                         {entry.images && entry.images.length > 0 ? (
                           <div className="grid grid-cols-2 gap-3">
-                            {entry.images.map((src, i) => (
+                            {entry.images.map((src) => (
                               <div
-                                key={i}
+                                key={`${entry.id}:${src}`}
                                 className="border-outline-variant relative h-32 overflow-hidden rounded-xl border shadow-inner"
                               >
                                 <Image
                                   src={src}
-                                  alt={`${entry.author} attachment ${i + 1}`}
+                                  alt={`${entry.author} attachment`}
                                   fill
                                   sizes="(min-width: 768px) 320px, 50vw"
                                   className="object-cover"

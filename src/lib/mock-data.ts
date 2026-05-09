@@ -104,7 +104,7 @@ export type MockEventLogEntry = {
 };
 
 /* ---------- 画像 ---------- */
-export const IMAGES = {
+const IMAGES = {
   profile:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuBj9qzeftfYjJw3SCpOmLcXXXoJA1_XcgMB54SYkgIPWeTt8jtrvwQhLdUqyyY3Rj6b_FcD0Kr4OeEsWBsqsE2GJ82VihwXHPQ4GRAcXyFB2L0FcvchEXRr3cxQmVLmuqBD2yCe8BIW5xRMbyt-V1MDpqj1HKG9NKGaDduDz2m4rpJr8dhpLo9X1CMBsP8gIf9ma7Lj9zKp-ZT3B_L68zwsGKqZvVZZ8UdhTZnFPRJnLNdsCzqxlNJzMBzd-V45mQ9GZ2DWSgLCr3UQ",
   profile2:

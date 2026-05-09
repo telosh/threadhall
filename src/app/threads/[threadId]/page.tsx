@@ -5,12 +5,20 @@ import { TopBar } from "@/components/layout/top-bar";
 import { ThreadComposer } from "@/components/domain/thread-composer";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
-  findOrganizationBySlug,
   findThreadById,
   listPostsByThread,
   MOCK_ORGANIZATIONS,
   MOCK_THREADS,
 } from "@/lib/mock-data";
+
+/** リスト項目の React key 用（本文が同一でも post 内で一意になるように序数を含む） */
+function postParagraphKey(postId: string, body: string, ordinal: number) {
+  let h = 0;
+  for (let j = 0; j < body.length; j++) {
+    h = (Math.imul(31, h) + body.charCodeAt(j)) | 0;
+  }
+  return `${postId}:${ordinal}:h${(h >>> 0).toString(36)}`;
+}
 
 /**
  * スレッド詳細。
@@ -117,7 +125,10 @@ export default async function ThreadDetailPage({ params }: Props) {
                     </div>
                     <div className="prose prose-sm text-body-md text-on-surface max-w-none leading-relaxed">
                       {post.paragraphs.map((p, i) => (
-                        <p key={i} className={i > 0 ? "mt-2" : "mb-4"}>
+                        <p
+                          key={postParagraphKey(post.id, p, i)}
+                          className={i > 0 ? "mt-2" : "mb-4"}
+                        >
                           {p}
                         </p>
                       ))}
