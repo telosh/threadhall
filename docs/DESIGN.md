@@ -161,6 +161,7 @@ threadhall/
 - **現状**: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`
 - **後続で足しうるもの**（名前は実装時に確定）: 外部認証、解析、Rate limit、プレビュー用フラグ
 - **UI 参照のみ（任意）**: Google Stitch の MCP をローカルから叩く用途で API キーを保持する場合、**リポジトリ・Issue・PR 本文にキーを書かない**。Cursor の MCP 設定や Secret 管理に限定する。
+- **Cursor でのキー適用・起動**: `.env.local` だけでは MCP に自動反映されない。手順・確認項目は **[`develop/CURSOR_STITCH.md`](develop/CURSOR_STITCH.md)** にまとめる。
 
 ## 13. オープンな設計判断（実装前に決めたい）
 

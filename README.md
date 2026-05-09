@@ -32,6 +32,10 @@ docker compose up --build web
 
 ホストで編集する場合は `web` サービスのボリュームマウントを利用（`Dockerfile.dev`）。
 
+### Cursor と Google Stitch MCP（任意）
+
+MCP 用の API キーは **`.env.local` を Cursor が勝手に読むわけではない**（起動時の環境変数が使われる）。**Git Bash** から `npm run cursor:here` または `bash scripts/cursor-with-stitch-env.sh` で起動する手順・よくあるつまずき・確認方法は **[`docs/develop/CURSOR_STITCH.md`](docs/develop/CURSOR_STITCH.md)** に集約。
+
 ## スクリプト
 
 | コマンド | 説明 |
@@ -42,6 +46,7 @@ docker compose up --build web
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:migrate` | SQL マイグレーションを適用（`.env.local` の URL を参照） |
 | `npm run docker:sqld` | libsql-server のみ起動 |
+| `npm run cursor:here` | **Git Bash 推奨**。`.env.local` の `STITCH_GOOGLE_API_KEY` を環境に載せて Cursor で本リポジトリを開く（[手順](docs/develop/CURSOR_STITCH.md)） |
 | `npm run docker:dev` | `docker compose up --build web` |
 
 ## 技術スタック（初期）
