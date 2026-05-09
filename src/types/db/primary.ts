@@ -16,3 +16,13 @@ export type SchemaMigrationRow = {
   version: string;
   applied_at: string;
 };
+
+/** @see db/migrations/0003_threads.sql */
+export type ThreadRow = {
+  id: string;
+  organization_id: string;
+  slug: string;
+  title: string;
+  thread_kind: "persistent" | "event_tied";
+  created_at: string;
+};

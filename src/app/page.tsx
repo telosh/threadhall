@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getDbOrNull } from "@/lib/db";
 import { listOrganizations } from "@/server/queries/organizations";
+import { listThreadsForOrganization } from "@/server/queries/threads";
 import { createOrganizationFormAction } from "@/server/actions/organization-actions";
+import type { OrganizationRow } from "@/types/db/primary";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -23,16 +25,18 @@ export default async function Home({ searchParams }: PageProps) {
   let dbPing: "ok" | "error" | "unset" = "unset";
   let dbDetail: string | null = null;
   let orgCount: number | "n/a" = "n/a";
+  let organizations: OrganizationRow[] = [];
 
   if (db) {
     try {
       await db.execute("SELECT 1");
       dbPing = "ok";
       try {
-        const orgs = await listOrganizations(db);
-        orgCount = orgs.length;
+        organizations = await listOrganizations(db);
+        orgCount = organizations.length;
       } catch {
         orgCount = "n/a";
+        organizations = [];
       }
     } catch (e) {
       dbPing = "error";
@@ -52,6 +56,16 @@ export default async function Home({ searchParams }: PageProps) {
           : errorKey
             ? `エラー: ${errorKey}`
             : null;
+
+  const orgThreadPairs =
+    db && dbPing === "ok" && orgCount !== "n/a" && organizations.length > 0
+      ? await Promise.all(
+          organizations.map(async (org) => ({
+            org,
+            threads: await listThreadsForOrganization(db, org.id),
+          })),
+        )
+      : [];
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
@@ -122,6 +136,8 @@ export default async function Home({ searchParams }: PageProps) {
           >
             /api/organizations
           </Link>
+          {" · "}
+          <span className="text-zinc-600">/api/threads?organization_id=…</span>
         </p>
       </section>
 
@@ -169,6 +185,51 @@ export default async function Home({ searchParams }: PageProps) {
               作成
             </button>
           </form>
+        </section>
+      ) : null}
+
+      {orgThreadPairs.length > 0 ? (
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <h2 className="text-sm font-medium text-zinc-300">
+            長命スレッド（FR-02・閲覧）
+          </h2>
+          <p className="mt-2 text-xs text-zinc-500">
+            作成は{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              POST /api/threads
+            </code>{" "}
+            （body: organization_id, slug, title）。一覧は各組織の query リンクから。
+          </p>
+          <ul className="mt-4 space-y-6">
+            {orgThreadPairs.map(({ org, threads }) => (
+              <li key={org.id}>
+                <h3 className="text-xs font-medium text-zinc-400">
+                  {org.display_name}{" "}
+                  <span className="font-mono text-zinc-500">({org.slug})</span>
+                </h3>
+                <p className="mt-1 text-xs">
+                  <Link
+                    href={`/api/threads?organization_id=${encodeURIComponent(org.id)}`}
+                    className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+                  >
+                    /api/threads?organization_id=…
+                  </Link>
+                </p>
+                {threads.length === 0 ? (
+                  <p className="mt-2 text-sm text-zinc-500">スレッドはまだありません</p>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-sm text-zinc-300">
+                    {threads.map((t) => (
+                      <li key={t.id} className="font-mono text-xs">
+                        {t.slug}{" "}
+                        <span className="text-zinc-500">: {t.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

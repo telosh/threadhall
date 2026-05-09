@@ -12,6 +12,19 @@
 
 ---
 
+## [未リリース] アプリケーション（FR-02 閲覧・API）
+
+### Added
+
+- `GET/POST /api/threads`（`organization_id` クエリ）
+- トップにスレッド一覧セクション
+
+## [未リリース] 0003_threads
+
+### Added
+
+- `threads` テーブル（組織 FK・`thread_kind` persistent / event_tied）
+
 ## [未リリース] アプリケーション（FR-01 一部）
 
 ### Added
