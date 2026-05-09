@@ -1,15 +1,23 @@
 import Link from "next/link";
 import { getDbOrNull } from "@/lib/db";
+import { listOrganizations } from "@/server/queries/organizations";
 
 export default async function Home() {
   const db = getDbOrNull();
   let dbPing: "ok" | "error" | "unset" = "unset";
   let dbDetail: string | null = null;
+  let orgCount: number | "n/a" = "n/a";
 
   if (db) {
     try {
       await db.execute("SELECT 1");
       dbPing = "ok";
+      try {
+        const orgs = await listOrganizations(db);
+        orgCount = orgs.length;
+      } catch {
+        orgCount = "n/a";
+      }
     } catch (e) {
       dbPing = "error";
       dbDetail = e instanceof Error ? e.message : String(e);
@@ -26,7 +34,7 @@ export default async function Home() {
           開発用スキャフォールド
         </h1>
         <p className="text-zinc-400">
-          Next.js App Router · Turso / libSQL · TanStack Query · Zustand · Docker（sqld）
+          Next.js App Router · Turso / libSQL · SQL マイグレーション · Zod · Zustand · Docker（sqld）
         </p>
       </header>
 
@@ -47,6 +55,16 @@ export default async function Home() {
               <dd className="break-all text-red-300/90">{dbDetail}</dd>
             </div>
           ) : null}
+          {dbPing === "ok" ? (
+            <div className="flex gap-2">
+              <dt className="w-24 shrink-0 text-zinc-500">organizations</dt>
+              <dd className="font-mono text-zinc-200">
+                {orgCount === "n/a"
+                  ? "未適用（npm run db:migrate）"
+                  : `${orgCount} 件`}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         <p className="mt-4 text-xs text-zinc-500">
           JSON で確認:{" "}
@@ -60,10 +78,10 @@ export default async function Home() {
       </section>
 
       <footer className="text-xs text-zinc-600">
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">docker compose up sqld</code>{" "}
-        後、
+        <code className="rounded bg-zinc-900 px-1.5 py-0.5">docker compose up -d sqld</code> と{" "}
+        <code className="rounded bg-zinc-900 px-1.5 py-0.5">npm run db:migrate</code> 後、
         <code className="rounded bg-zinc-900 px-1.5 py-0.5">cp .env.example .env.local</code>{" "}
-        で起動。
+        を整えて起動。
       </footer>
     </main>
   );
