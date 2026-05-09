@@ -1,6 +1,6 @@
 # Threadhall システムドキュメント（`docs/system`）
 
-製品・データ・インフラの**前提を固定する**ためのドキュメント群。リポジトリ内の実装レイアウトや開発時のフォルダ責務は [`../DESIGN.md`](../DESIGN.md) を参照（アプリ本体のスキャフォールド向け）。
+製品・データ・インフラの**前提を固定する**ためのドキュメント群。リポジトリ内の実装レイアウトや開発時のフォルダ責務は [`../DESIGN.md`](../DESIGN.md) を参照（アプリ本体のスキャフォールド向け）。**SQL・型・境界検証の契約**は [`../data/CONTRACTS.md`](../data/CONTRACTS.md)。
 
 | 項目 | 内容 |
 |------|------|
@@ -9,6 +9,8 @@
 | ステータス | ドラフト（スパイクでテーブル・API が固まったら各章を更新） |
 
 ## 読み方（推奨順）
+
+0. [`../data/CONTRACTS.md`](../data/CONTRACTS.md) … ORM なし・マイグレ・TanStack/RSC の分担（実装の正）
 
 1. [`overview.md`](overview.md) … 価値・スコープ・非目標
 2. [`frozen-decisions.md`](frozen-decisions.md) … 変更時は影響範囲を必ず明記する層

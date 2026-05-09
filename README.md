@@ -2,7 +2,7 @@
 
 コミュニティの**長命スレッド**と、**会場・締切で閉じるイベントログ**を想定した Next.js スキャフォールド。データ層は **Turso / libSQL**、ローカルは **Docker の libsql-server（sqld）** のみで開発できます。
 
-設計上の整理（ドメイン・フォルダ責務・`src/proxy.ts` など）は [`docs/DESIGN.md`](docs/DESIGN.md) を参照。**製品確定事項・権限・画面・GCP/Turso** は [`docs/system/README.md`](docs/system/README.md) を参照。
+設計上の整理（ドメイン・フォルダ責務・`src/proxy.ts` など）は [`docs/DESIGN.md`](docs/DESIGN.md) を参照。**製品確定事項・権限・画面・GCP/Turso** は [`docs/system/README.md`](docs/system/README.md)。**データ契約（SQL・型・TanStack/RSC）** は [`docs/data/CONTRACTS.md`](docs/data/CONTRACTS.md)。
 
 ## 必要環境
 
@@ -14,12 +14,13 @@
 
 ```bash
 cp .env.example .env.local
-docker compose up sqld
+docker compose up -d sqld
 npm install
+npm run db:migrate
 npm run dev
 ```
 
-ブラウザで `http://localhost:3000` 。DB 疎通は `/api/health/db` 。
+ブラウザで `http://localhost:3000` 。DB 疎通は `/api/health/db` 。スキーマは `npm run db:migrate` で `db/migrations` から適用。
 
 ### Docker で Web も含めて起動
 
@@ -37,6 +38,7 @@ docker compose up --build web
 | `npm run build` / `start` | 本番ビルド・起動 |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run db:migrate` | SQL マイグレーションを適用（`.env.local` の URL を参照） |
 | `npm run docker:sqld` | libsql-server のみ起動 |
 | `npm run docker:dev` | `docker compose up --build web` |
 
@@ -45,14 +47,16 @@ docker compose up --build web
 - **Next.js 16**（App Router、RSC 優先）
 - **React 19**
 - **Tailwind CSS 4**
-- **@libsql/client** … ローカル sqld / Turso 両対応（既定）
+- **@libsql/client** … ローカル sqld / Turso 両対応（既定）。**ORM は使わず** `db/migrations` + `src/types/db`
+- **Zod** … API / Server Action の入力検証（`src/schemas`）
 - **@tursodatabase/serverless**（`compat`）… 環境変数 `THREADHALL_USE_SERVERLESS_SDK=1` で `src/lib/db.ts` から利用可能
-- **TanStack Query** … クライアントのサーバー状態・ミューテーション
 - **Zustand** … 小さなクライアント UI 状態（例: `src/stores/ui-store.ts`）
+- **TanStack Query** … **未導入**（RSC で足りる間はバンドルを増やさない。クライアントからの再取得・楽観更新が必要になったら追加。判断は [`docs/data/CONTRACTS.md`](docs/data/CONTRACTS.md)）
 
 ### 状態管理の方針（推奨）
 
-- **サーバー由来のデータ**: Server Components で取得、または Route Handler + **TanStack Query**（クライアントで再利用・キャッシュ）
+- **サーバー由来のデータ**: 第一は **Server Components** と `src/server/queries/*`。同じデータをクライアントキャッシュに載せない（二重管理防止）
+- **クライアントからのミューテーション / ポーリングが必要なとき**: Route Handler または Server Action を用意し、その時点で **TanStack Query を再導入**してもよい
 - **URL に置ける状態**: `searchParams`（共有・ブックマークに強い）
 - **純 UI**: **Zustand** など極小ストア
 

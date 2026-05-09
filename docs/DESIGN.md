@@ -4,6 +4,8 @@
 
 **製品・インフラの確定事項・権限・画面対応**は [`system/README.md`](system/README.md) 配下へ分離した。
 
+**永続層とクライアント取得の契約**（ORM なし・マイグレ追跡・TanStack と RSC の分担）は [`data/CONTRACTS.md`](data/CONTRACTS.md)。
+
 ## 1. プロダクトの前提（README との接続）
 
 - **長命スレッド**: コミュニティ内で育つ、締切のない（または稀にのみ区切る）会話・記録の軸。
@@ -16,8 +18,10 @@
 | 層 | 採用 | 備考 |
 |----|------|------|
 | フレームワーク | Next.js 16（App Router） | RSC 優先。クライアントは必要箇所のみ |
-| DB | Turso / libSQL（`@libsql/client`） | ローカルは Docker `sqld`。接続は `src/lib/db.ts` |
-| サーバー状態（クライアント） | TanStack Query | ミューテーション・キャッシュの窓 |
+| DB | Turso / libSQL（`@libsql/client`） | ローカルは Docker `sqld`。接続は `src/lib/db.ts`。**ORM なし** |
+| スキーマ管理 | `db/migrations/*.sql` + `npm run db:migrate` | 変更は常に新規番号ファイル。[`docs/data/CONTRACTS.md`](data/CONTRACTS.md) |
+| 入力検証 | Zod（`src/schemas/*`） | **HTTP / Server Action 境界**に限定。行型は `src/types/db/*` |
+| クライアント取得・再試行 | 必要時のみ TanStack Query | **RSC で足りる画面では導入しない**（現状は依存なし。重複キャッシュを避ける） |
 | UI ローカル状態 | Zustand | サイドバー開閉など純 UI のみ |
 | スタイル | Tailwind CSS 4 | `globals.css` でトークン拡張予定 |
 
@@ -26,7 +30,7 @@
 ```mermaid
 flowchart LR
   subgraph client [Browser]
-    RQ[TanStack Query]
+    RQ[TanStack Query 任意]
     Z[Zustand UI]
   end
   subgraph next [Next.js]
@@ -40,12 +44,12 @@ flowchart LR
   RSC --> DB
   RH --> DB
   SA --> DB
-  RQ --> RH
-  RQ --> SA
+  RQ -.->|必要時のみ| RH
+  RQ -.->|必要時のみ| SA
 ```
 
-- **取得の第一選択**: Server Component で `src/server/queries/*` を呼び、props で渡す。
-- **再利用・楽観更新・ポーリング**: Route Handler または Server Action を TanStack Query から呼ぶ。
+- **取得の第一選択**: Server Component で `src/server/queries/*` を呼び、props で渡す（Next の RSC ツリー内で完結。**クライアントに同じデータの Query キャッシュを二重で持たない**）。
+- **TanStack Query を足す条件の例**: 同一データをブラウザから短周期で再取得したい、楽観更新したい、`router.refresh` だけでは UX が足りない——など。**導入時は `CONTRACTS.md` に理由を1行追記**する。
 - **URL に載せたい状態**: `searchParams`（フィルタ・ソート・ページング）。
 
 ## 4. ドメイン分割（概念）
@@ -91,8 +95,10 @@ flowchart LR
 
 | 置き場 | 役割 |
 |--------|------|
-| `src/types/` | ドメイン型・API 入出力型（Zod 推論型と二重定義しないよう後で統合） |
-| `src/schemas/` | 将来 Zod 等で入力検証を置く場所（現状未導入） |
+| `db/migrations/` | テーブル定義の SSOT |
+| `src/types/db/` | `SELECT` 行型（マイグレーションファイル名をコメントで紐付け） |
+| `src/schemas/` | Zod：**境界の入力**のみ。`z.infer` を API 型に使い、DB 行型と混同しない |
+| `docs/data/` | 契約・マイグレ手順・スキーマ用 CHANGELOG（破壊的変更の追跡） |
 
 ## 9. API 名前空間（Route Handlers）
 
@@ -123,8 +129,13 @@ Next.js 16 ではリクエストインターセプトの入り口を **`src/prox
 
 ```
 threadhall/
+├── db/
+│   └── migrations/        # SQL SSOT（番号順適用）
 ├── docs/
+│   ├── data/              # データ契約・CHANGELOG
 │   └── DESIGN.md          # 本書
+├── scripts/
+│   └── migrate.ts         # npm run db:migrate
 ├── public/
 ├── src/
 │   ├── app/               # App Router（レイアウト・ページ・api）
