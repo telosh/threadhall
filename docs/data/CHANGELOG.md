@@ -14,6 +14,10 @@
 
 ## [未リリース] インフラ（Turso / libSQL）
 
+### Added
+
+- `scripts/db-status.ts`・`npm run db:status`（適用済みマイグレと主要テーブル行数の読み取り検査。`@libsql/client` 経由）
+
 ### Changed
 
 - Turso 接続（URL・トークン・サーバレス SDK フラグ）を `src/lib/turso.ts` に集約。`src/lib/db.ts`・Better Auth の `LibsqlDialect`（サーバレス時の `client` 経由）・`scripts/migrate.ts` が同じ規則を参照する。
