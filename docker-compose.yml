@@ -1,0 +1,28 @@
+services:
+  sqld:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    environment:
+      SQLD_NODE: primary
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqld-data:/var/lib/sqld
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      TURSO_DATABASE_URL: http://sqld:8080
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - .:/app
+      - web-node-modules:/app/node_modules
+    depends_on:
+      - sqld
+
+volumes:
+  sqld-data:
+  web-node-modules:

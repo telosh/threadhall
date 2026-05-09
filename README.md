@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Threadhall
 
-## Getting Started
+コミュニティの**長命スレッド**と、**会場・締切で閉じるイベントログ**を想定した Next.js スキャフォールド。データ層は **Turso / libSQL**、ローカルは **Docker の libsql-server（sqld）** のみで開発できます。
 
-First, run the development server:
+## 必要環境
+
+- Node.js **22+**（`.nvmrc`）
+- Docker（任意。`sqld` 用）
+- npm（このリポジトリは `create-next-app` 既定で npm）
+
+## クイックスタート
 
 ```bash
+cp .env.example .env.local
+docker compose up sqld
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで `http://localhost:3000` 。DB 疎通は `/api/health/db` 。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Docker で Web も含めて起動
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+docker compose up --build web
+```
 
-## Learn More
+ホストで編集する場合は `web` サービスのボリュームマウントを利用（`Dockerfile.dev`）。
 
-To learn more about Next.js, take a look at the following resources:
+## スクリプト
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| コマンド | 説明 |
+|----------|------|
+| `npm run dev` | Next.js 開発サーバー（Turbopack） |
+| `npm run build` / `start` | 本番ビルド・起動 |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run docker:sqld` | libsql-server のみ起動 |
+| `npm run docker:dev` | `docker compose up --build web` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 技術スタック（初期）
 
-## Deploy on Vercel
+- **Next.js 16**（App Router、RSC 優先）
+- **React 19**
+- **Tailwind CSS 4**
+- **@libsql/client** … ローカル sqld / Turso 両対応
+- **@tursodatabase/serverless**（`compat`）… Turso 公式サーバレス SDK
+- **TanStack Query** … クライアントのサーバー状態・ミューテーション
+- **Zustand** … 小さなクライアント UI 状態（例: `src/stores/ui-store.ts`）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 状態管理の方針（推奨）
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **サーバー由来のデータ**: Server Components で取得、または Route Handler + **TanStack Query**（クライアントで再利用・キャッシュ）
+- **URL に置ける状態**: `searchParams`（共有・ブックマークに強い）
+- **純 UI**: **Zustand** など極小ストア
+
+## フレームワーク選定メモ（Angular などとの比較）
+
+| | Next.js（本リポジトリ） | Angular | Remix / React Router | SvelteKit |
+|---|-------------------------|---------|----------------------|-----------|
+| メリット | Vercel・**`vercel dev`**・Routing Middleware・RSC/SSG/SSR の公式導線が揃う。Turso / Drizzle 例が多い | 大規模エンタープライズで型・DI・設計が統一されやすい | Web 標準・フォーム・loader に寄せたデータフロー | 軽量・コンパイラ・書き味 |
+| デメリット | RSC と境界の学習コスト | 初回ボイルが重め・小規模では過剰になりがち | Vercel 以外のホスティング慣れが別 | 求人・コンポーネント資産は React より薄めになりがち |
+
+**Vercel Labs / エミュレーション** を活かす前提なら **Next.js** が最も摩擦が少ないです。企業規模で Angular 全体標準がある場合は、API だけ Nest/BFF を分離してフロントは Angular にしてもよいですが、Turso・Edge・デプロイ一体サイクルは Next 優位になりやすいです。
+
+ローカルで Vercel 相当の挙動に近づけるには例えば:
+
+```bash
+npx vercel@latest dev
+```
+
+（本リポジトリには Vercel CLI を依存に入れていません。必要なら都度 `npx` 推奨。）
+
+## Turso / libSQL
+
+- ローカル: `TURSO_DATABASE_URL=http://127.0.0.1:8080`（`.env.example` 参照）
+- 本番: Turso Cloud の `libsql://...` と `TURSO_AUTH_TOKEN`
+
+## Git・リモート
+
+初回:
+
+```bash
+git branch -m main
+git remote add origin git@github.com:telosh/threadhall.git
+git push -u origin main
+```
+
+組織名・リポジトリ名は環境に合わせて読み替えてください。
+
+## ライセンス
+
+MIT（`LICENSE`）。
