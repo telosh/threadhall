@@ -2,8 +2,7 @@ import type { NextConfig } from "next";
 import { withEmulate } from "@emulators/adapter-next";
 
 const nextConfig: NextConfig = {
-  // Cloud Run / Docker 本番用（Dockerfile で .next/standalone をコピー）
-  output: "standalone",
+  // Cloud Run / Docker 本番は `npm run start`（`next start`）。成果物は `.next` + 本番依存のみをイメージに載せる。
   turbopack: {
     root: process.cwd(),
   },
