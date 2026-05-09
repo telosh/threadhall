@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+.ci-*.db
 
 # next.js
 /.next/
