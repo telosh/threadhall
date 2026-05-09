@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withEmulate } from "@emulators/adapter-next";
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -6,4 +7,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withEmulate(nextConfig);

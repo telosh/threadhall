@@ -1,4 +1,11 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import {
+  BetterAuthGoogleSignIn,
+  BetterAuthSignOut,
+} from "@/components/auth/better-auth-buttons";
+import { emulateGoogleSeed } from "@/config/emulate-google-seed";
+import { auth, authGoogleEnabled } from "@/lib/auth";
 import { getDbOrNull } from "@/lib/db";
 import { listOrganizations } from "@/server/queries/organizations";
 import { listEventsForOrganization } from "@/server/queries/events";
@@ -69,6 +76,14 @@ export default async function Home({ searchParams }: PageProps) {
         )
       : [];
 
+  let session: Awaited<ReturnType<typeof auth.api.getSession>> = null;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch {
+    session = null;
+  }
+  const emulateGoogle = process.env.THREADHALL_USE_EMULATE_GOOGLE === "1";
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
       <header className="space-y-3">
@@ -94,6 +109,94 @@ export default async function Home({ searchParams }: PageProps) {
           {errorMessage}
         </p>
       ) : null}
+
+      {authGoogleEnabled ? (
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <h2 className="text-sm font-medium text-zinc-300">
+            サインイン{emulateGoogle ? "（Google · ローカル emulate）" : ""}
+          </h2>
+          {emulateGoogle ? (
+            <p className="mt-2 text-xs text-zinc-500">
+              GCP の OAuth クライアントなしで開発できます。下のボタンから
+              <code className="mx-1 rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+                /emulate/google
+              </code>
+              のアカウント選択 UI に進み、シード済みの仮ユーザーを選んでください。ユーザーを増やすときは{" "}
+              <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+                src/config/emulate-google-seed.ts
+              </code>{" "}
+              を編集します。
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-zinc-500">
+              本番用の Google OAuth クレデンシャルでサインインします。
+            </p>
+          )}
+          {emulateGoogle ? (
+            <ul className="mt-3 space-y-1 border-t border-zinc-800 pt-3 font-mono text-xs text-zinc-400">
+              {emulateGoogleSeed.users.map((u) => (
+                <li key={u.email}>
+                  {u.email}{" "}
+                  <span className="text-zinc-600">— {u.name}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+            {session?.user ? (
+              <>
+                <span className="text-zinc-300">
+                  <span className="text-zinc-500">ログイン中</span>{" "}
+                  {session.user.name ?? session.user.email ?? "（名無し）"}
+                  {session.user.email ? (
+                    <span className="font-mono text-xs text-zinc-500">
+                      {" "}
+                      ({session.user.email})
+                    </span>
+                  ) : null}
+                </span>
+                <BetterAuthSignOut />
+              </>
+            ) : (
+              <BetterAuthGoogleSignIn
+                mode={emulateGoogle ? "emulate" : "google"}
+              />
+            )}
+          </p>
+        </section>
+      ) : (
+        <section className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 p-5">
+          <h2 className="text-sm font-medium text-zinc-400">サインイン</h2>
+          <p className="mt-2 text-xs text-zinc-500">
+            未設定です。`.env.local` に{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              BETTER_AUTH_SECRET
+            </code>{" "}
+            （32 文字以上）・{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              BETTER_AUTH_URL
+            </code>
+            ・プライマリと同一の{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              TURSO_DATABASE_URL
+            </code>{" "}
+            を入れ、emulate 利用時は{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              THREADHALL_USE_EMULATE_GOOGLE=1
+            </code>
+            、本番 Google のみのときは{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              GOOGLE_CLIENT_ID
+            </code>{" "}
+            /{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              GOOGLE_CLIENT_SECRET
+            </code>{" "}
+            を追加してください（詳細は{" "}
+            <code className="font-mono text-zinc-400">.env.example</code>）。
+          </p>
+        </section>
+      )}
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
         <h2 className="text-sm font-medium text-zinc-300">データベース接続</h2>

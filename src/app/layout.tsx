@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "コミュニティの長命スレッドと、会場だけのイベントログ。",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

@@ -12,6 +12,18 @@
 
 ---
 
+## [未リリース] アプリケーション（Better Auth + emulate）
+
+### Added
+
+- [Better Auth](https://better-auth.com/)（`/api/auth/*`・Kysely + `@libsql/kysely-libsql`）
+- `0005_better_auth.sql`（user / session / account / verification）
+- emulate 時は `genericOAuth`（`google-emulate`）と `signIn.oauth2`
+
+### Removed
+
+- NextAuth（`next-auth`）
+
 ## [未リリース] アプリケーション（FR-03 イベント・API）
 
 ### Added

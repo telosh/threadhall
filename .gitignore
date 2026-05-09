@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# better-auth CLI stub DB (root auth.ts generate)
+.tmp-better-auth-generate.db
