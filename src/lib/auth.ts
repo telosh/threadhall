@@ -4,13 +4,14 @@ import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
 
 import { getTursoConnectionEnv, createTursoClient } from "@/lib/turso";
+import { isGoogleEmulatorRuntimeAllowed } from "@/lib/google-emulator-local";
 
-const useEmulateGoogle = process.env.THREADHALL_USE_EMULATE_GOOGLE === "1";
+const useEmulateGoogle = isGoogleEmulatorRuntimeAllowed();
 const hasRealGoogle =
   Boolean(process.env.GOOGLE_CLIENT_ID) &&
   Boolean(process.env.GOOGLE_CLIENT_SECRET);
 
-/** emulate オンのときは本番用 Google 環境変数があっても emulate を優先 */
+/** 許可環境でのみ emulate が有効。オン時は本番用 Google の環境変数があっても emulate を優先 */
 export const authGoogleEnabled = useEmulateGoogle || hasRealGoogle;
 
 function resolveBaseUrl(): string {
