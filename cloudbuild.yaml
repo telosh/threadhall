@@ -18,6 +18,9 @@
 # 注意: このジョブの gcloud run deploy はイメージを更新するだけ。
 #       環境変数・Secret は初回にコンソールで設定し、デプロイで消さないようフラグに注意
 #       （デフォルトの deploy は既存設定とマージされることが多いが、運用で flags を足す場合は要確認）。
+#
+# deploy の --command / --args: イメージの CMD だけに依存せず standalone を強制する。
+# （コンソールや古いリビジョンで npm run dev / Dockerfile.dev が残っていても上書きする）
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -66,6 +69,8 @@ steps:
       - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
       - "--region=$_REGION"
       - "--platform=managed"
+      - "--command=node"
+      - "--args=server.js"
       - "--quiet"
 
 images:
