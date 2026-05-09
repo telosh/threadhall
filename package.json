@@ -7,22 +7,24 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:migrate": "tsx scripts/migrate.ts",
     "docker:sqld": "docker compose up sqld",
     "docker:dev": "docker compose up --build web",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",
-    "@tanstack/react-query": "^5.100.9",
     "@tursodatabase/serverless": "^1.1.3",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "zod": "^3.24.2",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@tanstack/react-query-devtools": "^5.100.9",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.21.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

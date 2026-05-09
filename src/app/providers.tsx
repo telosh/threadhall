@@ -1,29 +1,11 @@
 "use client";
 
 import { RootShell } from "@/components/layout/root-shell";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
 
+/**
+ * クライアント境界のルートプロバイダー。
+ * TanStack Query は「クライアントからの再取得・楽観更新」が必要になった段階で再導入する（現状はバンドル省略）。
+ */
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-  );
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <RootShell>{children}</RootShell>
-      {process.env.NODE_ENV === "development" ? (
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
-      ) : null}
-    </QueryClientProvider>
-  );
+  return <RootShell>{children}</RootShell>;
 }
