@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "./providers";
+import { AppShell } from "@/components/layout/app-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,8 +30,7 @@ export const metadata: Metadata = {
     default: "Threadhall",
     template: "%s · Threadhall",
   },
-  description:
-    "コミュニティの長命スレッドと、会場だけのイベントログ。",
+  description: "コミュニティの長命スレッドと、会場だけのイベントログ。",
 };
 
 export default async function RootLayout({
@@ -43,8 +43,10 @@ export default async function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-surface text-on-surface">
-        <AppProviders>{children}</AppProviders>
+      <body className="bg-surface text-on-surface min-h-full">
+        <AppShell>
+          <AppProviders>{children}</AppProviders>
+        </AppShell>
       </body>
     </html>
   );
