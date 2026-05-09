@@ -15,7 +15,7 @@ export function BetterAuthGoogleSignIn({
       type="button"
       className={
         className ??
-        "rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200"
+        "rounded-lg bg-primary px-4 py-2 text-xs font-medium text-on-primary hover:opacity-90"
       }
       onClick={async () => {
         if (mode === "emulate") {
@@ -41,20 +41,20 @@ export function BetterAuthSignOut({
 }: {
   className?: string;
 }) {
-  const router = useRouter();
+  const { refresh } = useRouter();
 
   return (
     <button
       type="button"
       className={
         className ??
-        "rounded-lg border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
+        "rounded-lg border border-outline-variant bg-white px-3 py-1.5 text-xs font-medium text-on-surface hover:bg-surface-muted"
       }
       onClick={async () => {
         await authClient.signOut({
           fetchOptions: {
             onSuccess: () => {
-              router.refresh();
+              refresh();
             },
           },
         });

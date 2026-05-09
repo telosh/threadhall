@@ -85,59 +85,59 @@ export default async function Home({ searchParams }: PageProps) {
   const emulateGoogle = process.env.THREADHALL_USE_EMULATE_GOOGLE === "1";
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-8 px-6 py-12 sm:px-8 sm:py-16">
       <header className="space-y-3">
-        <p className="text-sm font-medium uppercase tracking-widest text-zinc-400">
+        <p className="font-mono text-xs font-medium uppercase tracking-[0.02em] text-text-dim">
           Threadhall
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h1 className="font-heading text-[1.75rem] font-semibold leading-[1.2] tracking-tight text-on-surface sm:text-[2.25rem]">
           開発用スキャフォールド
         </h1>
-        <p className="text-zinc-400">
+        <p className="text-[0.9375rem] leading-relaxed text-text-dim">
           Next.js App Router · Turso / libSQL · SQL マイグレーション · Zod ·
           Zustand · Docker（sqld）
         </p>
       </header>
 
       {created ? (
-        <p className="rounded-lg border border-emerald-800/80 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-200">
+        <p className="rounded-lg border border-secondary/30 bg-secondary/[0.06] px-4 py-3 text-sm text-on-surface">
           組織を作成しました。
         </p>
       ) : null}
       {errorMessage ? (
-        <p className="rounded-lg border border-red-900/80 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+        <p className="rounded-lg border border-error/30 bg-error/[0.06] px-4 py-3 text-sm text-error">
           {errorMessage}
         </p>
       ) : null}
 
       {authGoogleEnabled ? (
-        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <h2 className="text-sm font-medium text-zinc-300">
+        <section className="rounded-xl border border-border-low bg-white p-5 shadow-sm shadow-black/[0.04]">
+          <h2 className="font-heading text-sm font-semibold text-on-surface">
             サインイン{emulateGoogle ? "（Google · ローカル emulate）" : ""}
           </h2>
           {emulateGoogle ? (
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs text-text-dim">
               GCP の OAuth クライアントなしで開発できます。下のボタンから
-              <code className="mx-1 rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              <code className="mx-1 rounded bg-surface-container px-1 font-mono text-thread-stable">
                 /emulate/google
               </code>
               のアカウント選択 UI に進み、シード済みの仮ユーザーを選んでください。ユーザーを増やすときは{" "}
-              <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
                 src/config/emulate-google-seed.ts
               </code>{" "}
               を編集します。
             </p>
           ) : (
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs text-text-dim">
               本番用の Google OAuth クレデンシャルでサインインします。
             </p>
           )}
           {emulateGoogle ? (
-            <ul className="mt-3 space-y-1 border-t border-zinc-800 pt-3 font-mono text-xs text-zinc-400">
+            <ul className="mt-3 space-y-1 border-t border-border-low pt-3 font-mono text-xs text-text-dim">
               {emulateGoogleSeed.users.map((u) => (
                 <li key={u.email}>
                   {u.email}{" "}
-                  <span className="text-zinc-600">— {u.name}</span>
+                  <span className="text-text-dim">（{u.name}）</span>
                 </li>
               ))}
             </ul>
@@ -145,11 +145,11 @@ export default async function Home({ searchParams }: PageProps) {
           <p className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             {session?.user ? (
               <>
-                <span className="text-zinc-300">
-                  <span className="text-zinc-500">ログイン中</span>{" "}
+                <span className="text-on-surface">
+                  <span className="text-text-dim">ログイン中</span>{" "}
                   {session.user.name ?? session.user.email ?? "（名無し）"}
                   {session.user.email ? (
-                    <span className="font-mono text-xs text-zinc-500">
+                    <span className="font-mono text-xs text-text-dim">
                       {" "}
                       ({session.user.email})
                     </span>
@@ -165,45 +165,45 @@ export default async function Home({ searchParams }: PageProps) {
           </p>
         </section>
       ) : (
-        <section className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 p-5">
-          <h2 className="text-sm font-medium text-zinc-400">サインイン</h2>
-          <p className="mt-2 text-xs text-zinc-500">
+        <section className="rounded-xl border border-dashed border-outline-variant bg-surface-muted p-5">
+          <h2 className="font-heading text-sm font-semibold text-on-surface">サインイン</h2>
+          <p className="mt-2 text-xs text-text-dim">
             未設定です。`.env.local` に{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               BETTER_AUTH_SECRET
             </code>{" "}
             （32 文字以上）・{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               BETTER_AUTH_URL
             </code>
             ・プライマリと同一の{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               TURSO_DATABASE_URL
             </code>{" "}
             を入れ、emulate 利用時は{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               THREADHALL_USE_EMULATE_GOOGLE=1
             </code>
             、本番 Google のみのときは{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               GOOGLE_CLIENT_ID
             </code>{" "}
             /{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               GOOGLE_CLIENT_SECRET
             </code>{" "}
             を追加してください（詳細は{" "}
-            <code className="font-mono text-zinc-400">.env.example</code>）。
+            <code className="font-mono text-thread-stable">.env.example</code>）。
           </p>
         </section>
       )}
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <h2 className="text-sm font-medium text-zinc-300">データベース接続</h2>
-        <dl className="mt-3 space-y-2 text-sm text-zinc-400">
+      <section className="rounded-xl border border-border-low bg-white p-5 shadow-sm shadow-black/[0.04]">
+        <h2 className="font-heading text-sm font-semibold text-on-surface">データベース接続</h2>
+        <dl className="mt-3 space-y-2 text-sm text-text-dim">
           <div className="flex gap-2">
-            <dt className="w-24 shrink-0 text-zinc-500">状態</dt>
-            <dd className="font-mono text-zinc-200">
+            <dt className="w-24 shrink-0 text-text-dim">状態</dt>
+            <dd className="font-mono text-on-surface">
               {dbPing === "unset" && "未設定（.env.local を確認）"}
               {dbPing === "ok" && "接続OK（SELECT 1）"}
               {dbPing === "error" && "接続エラー"}
@@ -211,14 +211,14 @@ export default async function Home({ searchParams }: PageProps) {
           </div>
           {dbDetail ? (
             <div className="flex gap-2">
-              <dt className="w-24 shrink-0 text-zinc-500">詳細</dt>
-              <dd className="break-all text-red-300/90">{dbDetail}</dd>
+              <dt className="w-24 shrink-0 text-text-dim">詳細</dt>
+              <dd className="break-all text-error">{dbDetail}</dd>
             </div>
           ) : null}
           {dbPing === "ok" ? (
             <div className="flex gap-2">
-              <dt className="w-24 shrink-0 text-zinc-500">organizations</dt>
-              <dd className="font-mono text-zinc-200">
+              <dt className="w-24 shrink-0 text-text-dim">organizations</dt>
+              <dd className="font-mono text-on-surface">
                 {orgCount === "n/a"
                   ? "未適用（npm run db:migrate）"
                   : `${orgCount} 件`}
@@ -226,36 +226,36 @@ export default async function Home({ searchParams }: PageProps) {
             </div>
           ) : null}
         </dl>
-        <p className="mt-4 text-xs text-zinc-500">
+        <p className="mt-4 text-xs text-text-dim">
           JSON で確認:{" "}
           <Link
             href="/api/health/db"
-            className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+            className="text-secondary underline decoration-secondary/40 underline-offset-2 hover:text-secondary-container"
           >
             /api/health/db
           </Link>
           {" · "}
           <Link
             href="/api/organizations"
-            className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+            className="text-secondary underline decoration-secondary/40 underline-offset-2 hover:text-secondary-container"
           >
             /api/organizations
           </Link>
           {" · "}
-          <span className="text-zinc-600">
+          <span className="text-text-dim">
             /api/threads?organization_id=… /api/events?organization_id=…
           </span>
         </p>
       </section>
 
       {dbPing === "ok" && orgCount !== "n/a" ? (
-        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <h2 className="text-sm font-medium text-zinc-300">
+        <section className="rounded-xl border border-border-low bg-white p-5 shadow-sm shadow-black/[0.04]">
+          <h2 className="font-heading text-sm font-semibold text-on-surface">
             試用: 組織を1件作成（認可なし・開発用）
           </h2>
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-text-dim">
             `.env.local` に{" "}
-            <code className="rounded bg-zinc-950 px-1 text-zinc-300">
+            <code className="rounded bg-surface-container px-1 text-on-surface">
               THREADHALL_ALLOW_DEV_ORG_FORM=1
             </code>{" "}
             が必要です。本番では FR-08 後に無効のままです。
@@ -264,17 +264,17 @@ export default async function Home({ searchParams }: PageProps) {
             action={createOrganizationFormAction}
             className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
           >
-            <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-zinc-500">
+            <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-text-dim">
               表示名
               <input
                 name="display_name"
                 required
                 maxLength={200}
                 placeholder="サンプル研究室"
-                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600"
+                className="rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-on-surface placeholder:text-text-dim"
               />
             </label>
-            <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-zinc-500">
+            <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-text-dim">
               slug（URL用・英小文字とハイフン）
               <input
                 name="slug"
@@ -282,12 +282,12 @@ export default async function Home({ searchParams }: PageProps) {
                 maxLength={64}
                 pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
                 placeholder="sample-lab"
-                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-100 placeholder:text-zinc-600"
+                className="rounded-lg border border-outline-variant bg-white px-3 py-2 font-mono text-sm text-on-surface placeholder:text-text-dim"
               />
             </label>
             <button
               type="submit"
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-90"
             >
               作成
             </button>
@@ -296,86 +296,88 @@ export default async function Home({ searchParams }: PageProps) {
       ) : null}
 
       {orgBlocks.length > 0 ? (
-        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <h2 className="text-sm font-medium text-zinc-300">
+        <section className="rounded-xl border border-border-low bg-white p-5 shadow-sm shadow-black/[0.04]">
+          <h2 className="font-heading text-sm font-semibold text-on-surface">
             組織別一覧（FR-02 スレッド / FR-03 イベント）
           </h2>
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-text-dim">
             スレッド:{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               POST /api/threads
             </code>
             イベント:{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               POST /api/events
             </code>
             （phase 昇格は{" "}
-            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+            <code className="rounded bg-surface-container px-1 font-mono text-thread-stable">
               PATCH /api/events/[id]
             </code>
             、body の{" "}
-            <code className="font-mono text-zinc-400">phase</code> は{" "}
-            <code className="font-mono text-zinc-400">live</code> または{" "}
-            <code className="font-mono text-zinc-400">archived</code>
+            <code className="font-mono text-thread-stable">phase</code> は{" "}
+            <code className="font-mono text-thread-stable">live</code> または{" "}
+            <code className="font-mono text-thread-stable">archived</code>
             ）
           </p>
           <ul className="mt-4 space-y-6">
             {orgBlocks.map(({ org, threads, events }) => (
               <li key={org.id}>
-                <h3 className="text-xs font-medium text-zinc-400">
+                <h3 className="text-sm font-semibold text-on-surface">
                   {org.display_name}{" "}
-                  <span className="font-mono text-zinc-500">({org.slug})</span>
+                  <span className="font-mono text-xs font-normal text-text-dim">
+                    ({org.slug})
+                  </span>
                 </h3>
                 <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                   <Link
                     href={`/api/threads?organization_id=${encodeURIComponent(org.id)}`}
-                    className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+                    className="text-secondary underline decoration-secondary/40 underline-offset-2 hover:text-secondary-container"
                   >
                     threads JSON
                   </Link>
                   <Link
                     href={`/api/events?organization_id=${encodeURIComponent(org.id)}`}
-                    className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+                    className="text-secondary underline decoration-secondary/40 underline-offset-2 hover:text-secondary-container"
                   >
                     events JSON
                   </Link>
                 </p>
                 <div className="mt-3 space-y-3">
                   <div>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    <p className="font-mono text-[12px] font-medium uppercase tracking-wide text-text-dim">
                       スレッド
                     </p>
                     {threads.length === 0 ? (
-                      <p className="mt-1 text-sm text-zinc-500">
+                      <p className="mt-1 text-sm text-text-dim">
                         まだありません
                       </p>
                     ) : (
-                      <ul className="mt-1 space-y-1 text-sm text-zinc-300">
+                      <ul className="mt-1 space-y-1 text-sm text-on-surface">
                         {threads.map((t) => (
                           <li key={t.id} className="font-mono text-xs">
                             {t.slug}{" "}
-                            <span className="text-zinc-500">: {t.title}</span>
+                            <span className="text-text-dim">: {t.title}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
                   <div>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    <p className="font-mono text-[12px] font-medium uppercase tracking-wide text-text-dim">
                       イベント
                     </p>
                     {events.length === 0 ? (
-                      <p className="mt-1 text-sm text-zinc-500">
+                      <p className="mt-1 text-sm text-text-dim">
                         まだありません
                       </p>
                     ) : (
-                      <ul className="mt-1 space-y-1 text-sm text-zinc-300">
+                      <ul className="mt-1 space-y-1 text-sm text-on-surface">
                         {events.map((ev) => (
                           <li key={ev.id} className="font-mono text-xs">
                             {ev.slug}{" "}
-                            <span className="text-zinc-500">
+                            <span className="text-text-dim">
                               : {ev.title}{" "}
-                              <span className="text-zinc-600">
+                              <span className="text-text-dim">
                                 [{ev.phase}]
                               </span>
                             </span>
@@ -391,16 +393,16 @@ export default async function Home({ searchParams }: PageProps) {
         </section>
       ) : null}
 
-      <footer className="text-xs text-zinc-600">
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+      <footer className="text-xs text-text-dim">
+        <code className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-thread-stable">
           docker compose up -d sqld
         </code>{" "}
         と{" "}
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+        <code className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-thread-stable">
           npm run db:migrate
         </code>{" "}
         後、
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+        <code className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-thread-stable">
           cp .env.example .env.local
         </code>{" "}
         を整えて起動。

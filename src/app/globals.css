@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
+/* Stitch（docs/DESIGN.md §14.4）に合わせたライト基調トークン */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9f9f9;
+  --foreground: #1b1b1b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: #f9f9f9;
+  --color-on-surface: #1b1b1b;
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+
+  --color-secondary: #4648d4;
+  --color-secondary-container: #6063ee;
+  --color-on-secondary: #ffffff;
+
+  --color-outline: #7e7576;
+  --color-outline-variant: #cfc4c5;
+
+  --color-surface-muted: #f8fafc;
+  --color-surface-container: #f3f3f3;
+  --color-surface-container-low: #eeeeee;
+
+  --color-thread-stable: #0f172a;
+  --color-event-active: #f59e0b;
+  --color-text-dim: #64748b;
+  --color-border-low: #e2e8f0;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
 }
