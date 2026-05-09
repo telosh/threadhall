@@ -1,6 +1,6 @@
-# 本番用（threadhall-prod / Cloud Run 本番）。
-# next build の standalone 出力 + node server.js。dev は Dockerfile.dev のみ使用。
-# ローカル開発は docker-compose + Dockerfile.dev。
+# 本番用（Cloud Run の dev / prod 共通イメージ。threadhall-dev は cloudbuild.dev.yaml で別タグ）。
+# next build の standalone 出力 + node server.js。
+# compose のホットリロードだけ Dockerfile.dev の `npm run dev`。
 #
 # ビルド例:
 #   docker build -t threadhall:local .
