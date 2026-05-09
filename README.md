@@ -45,8 +45,8 @@ docker compose up --build web
 - **Next.js 16**（App Router、RSC 優先）
 - **React 19**
 - **Tailwind CSS 4**
-- **@libsql/client** … ローカル sqld / Turso 両対応
-- **@tursodatabase/serverless**（`compat`）… Turso 公式サーバレス SDK
+- **@libsql/client** … ローカル sqld / Turso 両対応（既定）
+- **@tursodatabase/serverless**（`compat`）… 環境変数 `THREADHALL_USE_SERVERLESS_SDK=1` で `src/lib/db.ts` から利用可能
 - **TanStack Query** … クライアントのサーバー状態・ミューテーション
 - **Zustand** … 小さなクライアント UI 状態（例: `src/stores/ui-store.ts`）
 
