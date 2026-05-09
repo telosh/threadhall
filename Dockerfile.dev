@@ -1,3 +1,8 @@
+# 開発用: `docker compose` の web サービス、および threadhall-dev（Cloud Run 検証）向けビルド。
+# 本番はルートの Dockerfile（standalone + next start）のみ使う。
+#
+# Cloud Run は PORT（例: 8080）を注入する。未設定時は 3000（compose 既定と一致）。
+
 FROM node:22-bookworm-slim
 
 WORKDIR /app
@@ -12,6 +17,7 @@ RUN npm ci
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+CMD ["sh", "-c", "exec npm run dev -- --hostname 0.0.0.0 --port \"${PORT}\""]
