@@ -11,6 +11,7 @@ export const metadata = {
 
 import { emulateGoogleSeed } from "@/config/emulate-google-seed";
 import { auth, authGoogleEnabled } from "@/lib/auth";
+import { isGoogleEmulatorRuntimeAllowed } from "@/lib/google-emulator-local";
 import { getDbOrNull } from "@/lib/db";
 import { listOrganizations } from "@/server/queries/organizations";
 import { listEventsForOrganization } from "@/server/queries/events";
@@ -87,7 +88,7 @@ export default async function Home({ searchParams }: PageProps) {
   } catch {
     session = null;
   }
-  const emulateGoogle = process.env.THREADHALL_USE_EMULATE_GOOGLE === "1";
+  const emulateGoogle = isGoogleEmulatorRuntimeAllowed();
 
   return (
     <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-8 px-6 py-12 sm:px-8 sm:py-16">
