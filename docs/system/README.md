@@ -36,3 +36,7 @@
 ## メタ情報（YAML 由来の追跡用）
 
 オリジナル設計メモの追跡 ID と対応は [`open-questions-and-spikes.md`](open-questions-and-spikes.md) の「設計メモの追跡項目」を参照。
+
+## 作業管理（Issue / gh）
+
+実装タスクは **GitHub Issues** で追跡する。ローカルからは **`gh issue list`** / **`gh issue view`**。エージェント・人間ともに運用ルールは **`.cursor/rules/github-issue-workflow.mdc`**。本文テンプレのコピーは **`.github/issue-bodies/`**。

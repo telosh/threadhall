@@ -1,0 +1,55 @@
+---
+description: GitHub Issue / gh CLI で進捗を残す（Threadhall）
+alwaysApply: true
+---
+
+# GitHub Issue と作業のルール（Threadhall）
+
+## 基本
+
+- **まとまった実装・設計変更**は必ず **Issue に紐づける**（番号は PR・コメントで明示）。
+- ターミナルから **`gh`** を使い、ブラウザだけに頼らない。
+- 仕様の正は **`docs/system/`** と **`docs/data/CONTRACTS.md`**。Issue 本文よりドキュメントを更新する。
+
+## 作業開始時
+
+```bash
+gh issue list --state open
+gh issue view <N>
+```
+
+Issue に **コメント**で書く例: 着手内容、前提コミット、参照ブランチ。
+
+## 作業中断・引き継ぎ時
+
+- 同一 Issue にコメント: **未完了箇所**、**破壊的変更の有無**、**次に触るファイル**。
+- スキーマ変更なら **`docs/data/CHANGELOG.md`** と **新規 `db/migrations/NNNN_*.sql` のみ**（既存ファイルを書き換えない）。
+
+## PR 作成時
+
+- 本文に **`Closes #N`**（完了時に閉じる）または **`Refs #N`**（参照のみ）。
+- マイグレ・型・Zod を触ったら PR 説明に **どの FR / どの設計節**を満たしたかを1文以上。
+
+## 完了時
+
+- マージ後: `gh issue view <N>` で状態確認。`Closes` 忘れなら **`gh issue close <N>`** と理由をコメント。
+
+## Issue 再作成・テンプレ
+
+- 本文の雛形: **`.github/issue-bodies/*.md`**
+
+## 既存 Issue（作成済みの例）
+
+| # | 内容 |
+|---|------|
+| 1 | Spike: 書込ゲート・Archived 拒否 |
+| 2 | FR-08 Auth |
+| 3 | FR-01 組織 |
+| 4 | FR-02 スレッド |
+| 5 | FR-03 イベント |
+| 6 | FR-04 サテライト provision |
+| 7 | FR-05〜07 ログ・トークン |
+| 8 | 未決メタ |
+| 9 | GCP デプロイ（任意） |
+
+番号はリポジトリで `gh issue list` して確認すること。
