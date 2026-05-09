@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "db:migrate": "tsx scripts/migrate.ts",
     "docker:sqld": "docker compose up sqld",
     "docker:dev": "docker compose up --build web",
+    "docker:build": "docker build -t threadhall:local .",
+    "docker:build:dev": "docker build -f Dockerfile.dev -t threadhall:dev-local .",
     "cursor:here": "bash scripts/cursor-with-stitch-env.sh"
   },
   "dependencies": {

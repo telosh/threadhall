@@ -1,12 +1,23 @@
+# Git / IDE
+.git
+.github
+.cursor
+*.md
+!README.md
+
+# Dependencies & build output
 node_modules
 .next
 out
-.git
-.gitignore
-*.md
+
+# Env（イメージに含めない）
 .env
 .env.*
 !.env.example
+
+# ダウンロード系・参考実装（本番イメージに不要）
+docs/stich
+
+# テスト・メタ
 coverage
-.turbo
-.vercel
+*.log
