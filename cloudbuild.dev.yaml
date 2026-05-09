@@ -1,0 +1,63 @@
+# Cloud Build（threadhall-dev）: Dockerfile.dev → dev イメージ（next dev）
+#
+# threadhall-dev プロジェクトで実行すること。
+# prod では cloudbuild.yaml + ルート Dockerfile を使う（二重管理を避ける）。
+#
+#   gcloud config set project threadhall-dev
+#   gcloud builds submit --config cloudbuild.dev.yaml \
+#     --substitutions=_REGION=asia-northeast1,_AR_HOSTNAME=asia-northeast1-docker.pkg.dev,_AR_REPO=threadhall,_SERVICE=threadhall-app
+#
+# Cloud Run 上では `next dev` のため、パフォーマンス・セキュリティは本番相当ではない。
+# ステージングとして長期運用するなら、dev でも Dockerfile（standalone）を検討。
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: asia-northeast1
+  _AR_HOSTNAME: asia-northeast1-docker.pkg.dev
+  _AR_REPO: threadhall
+  _SERVICE: threadhall-app
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    env:
+      - DOCKER_BUILDKIT=1
+    args:
+      - build
+      - "-f"
+      - Dockerfile.dev
+      - "-t"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+      - "-t"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"
+      - .
+
+  - id: push-sha
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+
+  - id: push-latest
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - $_SERVICE
+      - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+      - "--region=$_REGION"
+      - "--platform=managed"
+      - "--quiet"
+
+images:
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:$SHORT_SHA"
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE-dev:latest"

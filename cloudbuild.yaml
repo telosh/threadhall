@@ -1,0 +1,73 @@
+# Cloud Build → Artifact Registry → Cloud Run（本番イメージのみ）
+# 使用 Dockerfile: リポジトリルートの `Dockerfile`（standalone / prod）。
+# threadhall-dev 向けは cloudbuild.dev.yaml（Dockerfile.dev / next dev）。
+#
+# 使い方の例（prod プロジェクト）:
+#   gcloud config set project threadhall-prod
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_REGION=asia-northeast1,_AR_REPO=threadhall,_SERVICE=threadhall-app
+#
+# prod 専用。dev は cloudbuild.dev.yaml を threadhall-dev で使う。
+# GitHub 連携トリガーから実行する場合は、コンソールのトリガー設定で同じ substitutions を上書き。
+#
+# 必要 IAM（Cloud Build のデフォルト SA: PROJECT_NUMBER@cloudbuild.gserviceaccount.com）:
+#   - Artifact Registry Writer（リポジトリへの push）
+#   - Cloud Run 管理者、または roles/run.developer + サービスアカウントユーザー相当
+#   - Cloud Run に Secret を渡す場合はランタイム SA 側に secretAccessor
+#
+# 注意: このジョブの gcloud run deploy はイメージを更新するだけ。
+#       環境変数・Secret は初回にコンソールで設定し、デプロイで消さないようフラグに注意
+#       （デフォルトの deploy は既存設定とマージされることが多いが、運用で flags を足す場合は要確認）。
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: asia-northeast1
+  # ホスト名はリージョンに合わせる: https://cloud.google.com/artifact-registry/docs/repositories/create-docker
+  _AR_HOSTNAME: asia-northeast1-docker.pkg.dev
+  _AR_REPO: threadhall
+  _SERVICE: threadhall-app
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    env:
+      - DOCKER_BUILDKIT=1
+    args:
+      - build
+      - "-f"
+      - Dockerfile
+      - "-t"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
+      - "-t"
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:latest"
+      - .
+
+  - id: push-sha
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
+
+  - id: push-latest
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:latest"
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - $_SERVICE
+      - "--image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
+      - "--region=$_REGION"
+      - "--platform=managed"
+      - "--quiet"
+
+images:
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:$SHORT_SHA"
+  - "$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPO/$_SERVICE:latest"
