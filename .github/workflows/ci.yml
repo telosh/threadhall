@@ -28,6 +28,7 @@ jobs:
         run: |
           rm -f /tmp/threadhall-ci.db
           npm run db:migrate
+          npm run db:status
 
       - run: npm run lint
 
