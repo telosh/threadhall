@@ -10,8 +10,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "docker:sqld": "docker compose up sqld",
     "docker:dev": "docker compose up --build web",
-    "cursor:here": "bash scripts/cursor-with-stitch-env.sh",
-    "cursor:here:pwsh": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cursor-with-stitch-env.ps1"
+    "cursor:here": "bash scripts/cursor-with-stitch-env.sh"
   },
   "dependencies": {
     "@emulators/adapter-next": "^0.5.0",

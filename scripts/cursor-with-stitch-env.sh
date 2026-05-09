@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # `.env.local` の STITCH_GOOGLE_API_KEY を export してから Cursor でこのリポジトリを開く。
 # MCP（.cursor/mcp.json の ${env:STITCH_GOOGLE_API_KEY}）用。既存の Cursor は一度終了してから実行。
+# Windows では Git Bash（PATH に bash があること）を想定。
 #
 # 使い方（リポジトリ直下でも scripts からでも可）:
 #   bash scripts/cursor-with-stitch-env.sh
