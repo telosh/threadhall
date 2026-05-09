@@ -12,6 +12,20 @@
 
 ---
 
+## [未リリース] アプリケーション（FR-03 イベント・API）
+
+### Added
+
+- `GET/POST /api/events`（`organization_id` クエリ）
+- `PATCH /api/events/[id]`（body: `phase` = `live` | `archived`。遷移は draft→live→archived のみ）
+- トップの組織別セクションにイベント一覧を併記
+
+## [未リリース] 0004_events
+
+### Added
+
+- `events` テーブル（組織 FK・`phase` draft/live/archived・`satellite_ref` 任意）
+
 ## [未リリース] アプリケーション（FR-02 閲覧・API）
 
 ### Added

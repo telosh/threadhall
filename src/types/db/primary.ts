@@ -26,3 +26,17 @@ export type ThreadRow = {
   thread_kind: "persistent" | "event_tied";
   created_at: string;
 };
+
+/** @see db/migrations/0004_events.sql */
+export type EventPhase = "draft" | "live" | "archived";
+
+/** @see db/migrations/0004_events.sql */
+export type EventRow = {
+  id: string;
+  organization_id: string;
+  slug: string;
+  title: string;
+  phase: EventPhase;
+  satellite_ref: string | null;
+  created_at: string;
+};

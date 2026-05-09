@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDbOrNull } from "@/lib/db";
 import { listOrganizations } from "@/server/queries/organizations";
+import { listEventsForOrganization } from "@/server/queries/events";
 import { listThreadsForOrganization } from "@/server/queries/threads";
 import { createOrganizationFormAction } from "@/server/actions/organization-actions";
 import type { OrganizationRow } from "@/types/db/primary";
@@ -57,12 +58,13 @@ export default async function Home({ searchParams }: PageProps) {
             ? `エラー: ${errorKey}`
             : null;
 
-  const orgThreadPairs =
+  const orgBlocks =
     db && dbPing === "ok" && orgCount !== "n/a" && organizations.length > 0
       ? await Promise.all(
           organizations.map(async (org) => ({
             org,
             threads: await listThreadsForOrganization(db, org.id),
+            events: await listEventsForOrganization(db, org.id),
           })),
         )
       : [];
@@ -137,7 +139,9 @@ export default async function Home({ searchParams }: PageProps) {
             /api/organizations
           </Link>
           {" · "}
-          <span className="text-zinc-600">/api/threads?organization_id=…</span>
+          <span className="text-zinc-600">
+            /api/threads?organization_id=… /api/events?organization_id=…
+          </span>
         </p>
       </section>
 
@@ -188,45 +192,96 @@ export default async function Home({ searchParams }: PageProps) {
         </section>
       ) : null}
 
-      {orgThreadPairs.length > 0 ? (
+      {orgBlocks.length > 0 ? (
         <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
           <h2 className="text-sm font-medium text-zinc-300">
-            長命スレッド（FR-02・閲覧）
+            組織別一覧（FR-02 スレッド / FR-03 イベント）
           </h2>
           <p className="mt-2 text-xs text-zinc-500">
-            作成は{" "}
+            スレッド:{" "}
             <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
               POST /api/threads
-            </code>{" "}
-            （body: organization_id, slug, title）。一覧は各組織の query リンクから。
+            </code>
+            イベント:{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              POST /api/events
+            </code>
+            （phase 昇格は{" "}
+            <code className="rounded bg-zinc-950 px-1 font-mono text-zinc-300">
+              PATCH /api/events/[id]
+            </code>
+            、body の{" "}
+            <code className="font-mono text-zinc-400">phase</code> は{" "}
+            <code className="font-mono text-zinc-400">live</code> または{" "}
+            <code className="font-mono text-zinc-400">archived</code>
+            ）
           </p>
           <ul className="mt-4 space-y-6">
-            {orgThreadPairs.map(({ org, threads }) => (
+            {orgBlocks.map(({ org, threads, events }) => (
               <li key={org.id}>
                 <h3 className="text-xs font-medium text-zinc-400">
                   {org.display_name}{" "}
                   <span className="font-mono text-zinc-500">({org.slug})</span>
                 </h3>
-                <p className="mt-1 text-xs">
+                <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                   <Link
                     href={`/api/threads?organization_id=${encodeURIComponent(org.id)}`}
                     className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
                   >
-                    /api/threads?organization_id=…
+                    threads JSON
+                  </Link>
+                  <Link
+                    href={`/api/events?organization_id=${encodeURIComponent(org.id)}`}
+                    className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+                  >
+                    events JSON
                   </Link>
                 </p>
-                {threads.length === 0 ? (
-                  <p className="mt-2 text-sm text-zinc-500">スレッドはまだありません</p>
-                ) : (
-                  <ul className="mt-2 space-y-1 text-sm text-zinc-300">
-                    {threads.map((t) => (
-                      <li key={t.id} className="font-mono text-xs">
-                        {t.slug}{" "}
-                        <span className="text-zinc-500">: {t.title}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                      スレッド
+                    </p>
+                    {threads.length === 0 ? (
+                      <p className="mt-1 text-sm text-zinc-500">
+                        まだありません
+                      </p>
+                    ) : (
+                      <ul className="mt-1 space-y-1 text-sm text-zinc-300">
+                        {threads.map((t) => (
+                          <li key={t.id} className="font-mono text-xs">
+                            {t.slug}{" "}
+                            <span className="text-zinc-500">: {t.title}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                      イベント
+                    </p>
+                    {events.length === 0 ? (
+                      <p className="mt-1 text-sm text-zinc-500">
+                        まだありません
+                      </p>
+                    ) : (
+                      <ul className="mt-1 space-y-1 text-sm text-zinc-300">
+                        {events.map((ev) => (
+                          <li key={ev.id} className="font-mono text-xs">
+                            {ev.slug}{" "}
+                            <span className="text-zinc-500">
+                              : {ev.title}{" "}
+                              <span className="text-zinc-600">
+                                [{ev.phase}]
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
