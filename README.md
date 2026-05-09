@@ -51,7 +51,7 @@ docker compose up --build web
 - **Tailwind CSS 4**
 - **@libsql/client** … ローカル sqld / Turso 両対応（既定）。**ORM は使わず** `db/migrations` + `src/types/db`
 - **Zod** … API / Server Action の入力検証（`src/schemas`）
-- **@tursodatabase/serverless**（`compat`）… 環境変数 `THREADHALL_USE_SERVERLESS_SDK=1` で `src/lib/db.ts` から利用可能
+- **@tursodatabase/serverless**（`compat`）… `THREADHALL_USE_SERVERLESS_SDK=1` のとき `src/lib/turso.ts` 経由で**アプリ DB・Better Auth・`npm run db:migrate`**に同じ接続規則が適用される
 - **Zustand** … 小さなクライアント UI 状態（例: `src/stores/ui-store.ts`）
 - **TanStack Query** … **未導入**（RSC で足りる間はバンドルを増やさない。クライアントからの再取得・楽観更新が必要になったら追加。判断は [`docs/data/CONTRACTS.md`](docs/data/CONTRACTS.md)）
 

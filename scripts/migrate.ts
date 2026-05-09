@@ -4,10 +4,12 @@
  *
  * Node で .env.local を読む（Next.js 外なので手動で dotenv）
  */
-import { createClient, type Client } from "@libsql/client";
+import type { Client } from "@libsql/client";
 import { config as loadEnv } from "dotenv";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
+
+import { createTursoClient } from "../src/lib/turso";
 
 loadEnv({ path: join(process.cwd(), ".env.local"), override: false });
 loadEnv({ path: join(process.cwd(), ".env"), override: false });
@@ -37,41 +39,45 @@ async function isMigrationApplied(
 }
 
 async function main() {
-  const url = process.env.TURSO_DATABASE_URL;
-  if (!url) {
-    console.error("TURSO_DATABASE_URL is not set (.env.local 参照)");
+  let db: Client;
+  try {
+    db = createTursoClient();
+  } catch {
+    console.error(
+      "TURSO_DATABASE_URL is not set (.env.local 参照)。Turso Cloud の場合は libsql://… と TURSO_AUTH_TOKEN も設定してください。",
+    );
     process.exit(1);
   }
 
-  const authToken = process.env.TURSO_AUTH_TOKEN;
-  const db = authToken ? createClient({ url, authToken }) : createClient({ url });
-
-  const files = listMigrationFiles();
-  if (files.length === 0) {
-    console.log("マイグレーションファイルがありません。");
-    return;
-  }
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]!;
-    if (await isMigrationApplied(db, file)) {
-      console.log(`skip ${file}`);
-      continue;
+  try {
+    const files = listMigrationFiles();
+    if (files.length === 0) {
+      console.log("マイグレーションファイルがありません。");
+      return;
     }
 
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
-    console.log(`apply ${file} …`);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]!;
+      if (await isMigrationApplied(db, file)) {
+        console.log(`skip ${file}`);
+        continue;
+      }
 
-    await db.executeMultiple(sql);
-    await db.execute({
-      sql: "INSERT INTO schema_migrations (version) VALUES (?)",
-      args: [file],
-    });
-    console.log(`ok  ${file}`);
+      const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+      console.log(`apply ${file} …`);
+
+      await db.executeMultiple(sql);
+      await db.execute({
+        sql: "INSERT INTO schema_migrations (version) VALUES (?)",
+        args: [file],
+      });
+      console.log(`ok  ${file}`);
+    }
+
+    console.log("完了。");
+  } finally {
+    db.close();
   }
-
-  db.close();
-  console.log("完了。");
 }
 
 main().catch((e) => {

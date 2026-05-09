@@ -3,6 +3,8 @@ import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
 
+import { getTursoConnectionEnv, createTursoClient } from "@/lib/turso";
+
 const useEmulateGoogle = process.env.THREADHALL_USE_EMULATE_GOOGLE === "1";
 const hasRealGoogle =
   Boolean(process.env.GOOGLE_CLIENT_ID) &&
@@ -22,19 +24,21 @@ function resolveBaseUrl(): string {
 const baseUrl = resolveBaseUrl();
 
 function libsqlDatabase() {
-  const url = process.env.TURSO_DATABASE_URL;
-  if (!url) {
+  try {
+    const { url, authToken, useServerlessSdk } = getTursoConnectionEnv();
+    // kysely-libsql の型定義が古い @libsql/client に固定されているため、サーバレス SDK 経路だけ never で合わせる（実行時は同一プロトコル）。
+    const dialect = useServerlessSdk
+      ? new LibsqlDialect({ client: createTursoClient() as never })
+      : new LibsqlDialect({ url, authToken });
+    return {
+      type: "sqlite" as const,
+      dialect,
+    };
+  } catch {
     throw new Error(
-      "TURSO_DATABASE_URL が未設定です。Better Auth は user / session 用にプライマリ DB と同一 libSQL を参照します。",
+      "TURSO_DATABASE_URL が未設定です。Better Auth は user / session 用にプライマリ DB と同一 libSQL（Turso Cloud なら `libsql://` + TURSO_AUTH_TOKEN）を参照します。",
     );
   }
-  return {
-    type: "sqlite" as const,
-    dialect: new LibsqlDialect({
-      url,
-      authToken: process.env.TURSO_AUTH_TOKEN || undefined,
-    }),
-  };
 }
 
 const emulateGooglePlugin = useEmulateGoogle

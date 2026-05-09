@@ -12,6 +12,12 @@
 
 ---
 
+## [未リリース] インフラ（Turso / libSQL）
+
+### Changed
+
+- Turso 接続（URL・トークン・サーバレス SDK フラグ）を `src/lib/turso.ts` に集約。`src/lib/db.ts`・Better Auth の `LibsqlDialect`（サーバレス時の `client` 経由）・`scripts/migrate.ts` が同じ規則を参照する。
+
 ## [未リリース] アプリケーション（Better Auth + emulate）
 
 ### Added

@@ -3,6 +3,7 @@
 ## 前提
 
 - `TURSO_DATABASE_URL` が効いていること（例: `.env.local` の `http://127.0.0.1:8080`）
+- **Turso Cloud** では `libsql://…` と **`TURSO_AUTH_TOKEN`（必須）**。アプリ本体・Better Auth・このマイグレーションは同じ env を参照する（`src/lib/turso.ts`）。
 - ローカルなら `docker compose up -d sqld` 済み
 
 ## コマンド
