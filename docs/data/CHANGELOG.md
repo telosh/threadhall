@@ -12,6 +12,14 @@
 
 ---
 
+## [未リリース] アプリケーション（FR-01 一部）
+
+### Added
+
+- `POST /api/organizations` で組織 INSERT（409: slug 重複）
+- `insertOrganization`（`src/server/mutations/organizations.ts`）
+- トップページの開発用フォーム（Server Action → リダイレクトフラッシュ）
+
 ## [未リリース] 0002_organizations
 
 ### Added

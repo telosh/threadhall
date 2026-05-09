@@ -22,6 +22,8 @@ npm run dev
 
 ブラウザで `http://localhost:3000` 。DB 疎通は `/api/health/db` 。スキーマは `npm run db:migrate` で `db/migrations` から適用。
 
+トップの「試用: 組織作成」フォームを使う場合は `.env.local` に `THREADHALL_ALLOW_DEV_ORG_FORM=1` を追加（`.env.example` 参照）。
+
 ### Docker で Web も含めて起動
 
 ```bash

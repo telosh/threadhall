@@ -3,10 +3,14 @@ import {
   organizationCreateSchema,
 } from "@/schemas/organization";
 import { getDbOrNull } from "@/lib/db";
+import {
+  OrganizationSlugConflictError,
+  insertOrganization,
+} from "@/server/mutations/organizations";
 import { listOrganizations } from "@/server/queries/organizations";
 import { NextResponse } from "next/server";
 
-/** 組織の参照（FR-01 土台）。作成は後続で Server Action 等に寄せる。 */
+/** 組織の参照（FR-01）。 */
 export async function GET() {
   const db = getDbOrNull();
   if (!db) {
@@ -19,7 +23,7 @@ export async function GET() {
   return NextResponse.json({ organizations });
 }
 
-/** 境界用 Zod の接続確認（本体実装前は 501） */
+/** 組織の作成（FR-01）。認可・メンバーは後続。 */
 export async function POST(req: Request) {
   let json: unknown;
   try {
@@ -35,8 +39,23 @@ export async function POST(req: Request) {
     );
   }
   const body: OrganizationCreate = parsed.data;
-  return NextResponse.json(
-    { message: "Organization create not implemented yet", received: body },
-    { status: 501 },
-  );
+  const db = getDbOrNull();
+  if (!db) {
+    return NextResponse.json(
+      { error: "Database not configured" },
+      { status: 503 },
+    );
+  }
+  try {
+    const organization = await insertOrganization(db, body);
+    return NextResponse.json({ organization }, { status: 201 });
+  } catch (e) {
+    if (e instanceof OrganizationSlugConflictError) {
+      return NextResponse.json(
+        { error: "Slug already exists", slug: e.slug },
+        { status: 409 },
+      );
+    }
+    throw e;
+  }
 }

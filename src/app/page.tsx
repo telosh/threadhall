@@ -1,8 +1,24 @@
 import Link from "next/link";
 import { getDbOrNull } from "@/lib/db";
 import { listOrganizations } from "@/server/queries/organizations";
+import { createOrganizationFormAction } from "@/server/actions/organization-actions";
 
-export default async function Home() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+type PageProps = {
+  searchParams?: Promise<SearchParams>;
+};
+
+export default async function Home({ searchParams }: PageProps) {
+  const sp = searchParams ? await searchParams : {};
+  const created = sp.created === "1" || sp.created === "true";
+  const errorKey =
+    typeof sp.error === "string"
+      ? sp.error
+      : Array.isArray(sp.error)
+        ? sp.error[0]
+        : undefined;
+
   const db = getDbOrNull();
   let dbPing: "ok" | "error" | "unset" = "unset";
   let dbDetail: string | null = null;
@@ -24,6 +40,19 @@ export default async function Home() {
     }
   }
 
+  const errorMessage =
+    errorKey === "slug_taken"
+      ? "その slug は既に使われています（別の値にしてください）。"
+      : errorKey === "dev_form_disabled"
+        ? "開発用フォームは無効です。`.env.local` に THREADHALL_ALLOW_DEV_ORG_FORM=1 を設定してください。"
+        : errorKey === "no_db"
+        ? "DB が未設定です（.env.local）。"
+        : errorKey === "validation"
+          ? "入力が不正です（slug は小文字・数字・ハイフンのみ）。"
+          : errorKey
+            ? `エラー: ${errorKey}`
+            : null;
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
       <header className="space-y-3">
@@ -34,9 +63,21 @@ export default async function Home() {
           開発用スキャフォールド
         </h1>
         <p className="text-zinc-400">
-          Next.js App Router · Turso / libSQL · SQL マイグレーション · Zod · Zustand · Docker（sqld）
+          Next.js App Router · Turso / libSQL · SQL マイグレーション · Zod ·
+          Zustand · Docker（sqld）
         </p>
       </header>
+
+      {created ? (
+        <p className="rounded-lg border border-emerald-800/80 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-200">
+          組織を作成しました。
+        </p>
+      ) : null}
+      {errorMessage ? (
+        <p className="rounded-lg border border-red-900/80 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+          {errorMessage}
+        </p>
+      ) : null}
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
         <h2 className="text-sm font-medium text-zinc-300">データベース接続</h2>
@@ -74,13 +115,75 @@ export default async function Home() {
           >
             /api/health/db
           </Link>
+          {" · "}
+          <Link
+            href="/api/organizations"
+            className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+          >
+            /api/organizations
+          </Link>
         </p>
       </section>
 
+      {dbPing === "ok" && orgCount !== "n/a" ? (
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <h2 className="text-sm font-medium text-zinc-300">
+            試用: 組織を1件作成（認可なし・開発用）
+          </h2>
+          <p className="mt-2 text-xs text-zinc-500">
+            `.env.local` に{" "}
+            <code className="rounded bg-zinc-950 px-1 text-zinc-300">
+              THREADHALL_ALLOW_DEV_ORG_FORM=1
+            </code>{" "}
+            が必要です。本番では FR-08 後に無効のままです。
+          </p>
+          <form
+            action={createOrganizationFormAction}
+            className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+          >
+            <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-zinc-500">
+              表示名
+              <input
+                name="display_name"
+                required
+                maxLength={200}
+                placeholder="サンプル研究室"
+                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600"
+              />
+            </label>
+            <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-zinc-500">
+              slug（URL用・英小文字とハイフン）
+              <input
+                name="slug"
+                required
+                maxLength={64}
+                pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                placeholder="sample-lab"
+                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-100 placeholder:text-zinc-600"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+            >
+              作成
+            </button>
+          </form>
+        </section>
+      ) : null}
+
       <footer className="text-xs text-zinc-600">
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">docker compose up -d sqld</code> と{" "}
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">npm run db:migrate</code> 後、
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5">cp .env.example .env.local</code>{" "}
+        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+          docker compose up -d sqld
+        </code>{" "}
+        と{" "}
+        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+          npm run db:migrate
+        </code>{" "}
+        後、
+        <code className="rounded bg-zinc-900 px-1.5 py-0.5">
+          cp .env.example .env.local
+        </code>{" "}
         を整えて起動。
       </footer>
     </main>
