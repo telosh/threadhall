@@ -9,6 +9,11 @@ on:
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
+    env:
+      # Next ビルド時に Better Auth が libSQL を初期化する。.env.local が無い CI では必須。
+      TURSO_DATABASE_URL: file:/tmp/threadhall-ci.db
+      BETTER_AUTH_SECRET: "01234567890123456789012345678901"
+      BETTER_AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
 
@@ -19,8 +24,15 @@ jobs:
 
       - run: npm ci
 
+      - name: Apply DB migrations (CI SQLite file)
+        run: |
+          rm -f /tmp/threadhall-ci.db
+          npm run db:migrate
+
       - run: npm run lint
 
       - run: npm run typecheck
+
+      - run: npm run test
 
       - run: npm run build
